@@ -45,6 +45,10 @@
           "named": true
         },
         {
+          "type": "event_clause",
+          "named": true
+        },
+        {
           "type": "expression",
           "named": true
         },
@@ -1193,6 +1197,11 @@
     }
   },
   {
+    "type": "empty_statement",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "enum",
     "named": true,
     "fields": {
@@ -1248,6 +1257,21 @@
         },
         {
           "type": "kwesc_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "event_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
           "named": true
         }
       ]
@@ -2104,6 +2128,10 @@
         {
           "type": "lambda_params",
           "named": true
+        },
+        {
+          "type": "parameter_list",
+          "named": true
         }
       ]
     }
@@ -2613,6 +2641,10 @@
           "named": true
         },
         {
+          "type": "empty_statement",
+          "named": true
+        },
+        {
           "type": "expression_statement",
           "named": true
         },
@@ -2918,7 +2950,15 @@
             "named": false
           },
           {
+            "type": ":>",
+            "named": false
+          },
+          {
             "type": "not",
+            "named": false
+          },
+          {
+            "type": "|>",
             "named": false
           },
           {
@@ -3421,11 +3461,11 @@
   },
   {
     "type": "float",
-    "named": true
+    "named": false
   },
   {
     "type": "float",
-    "named": false
+    "named": true
   },
   {
     "type": "flow",

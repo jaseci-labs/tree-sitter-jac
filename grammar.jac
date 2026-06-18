@@ -380,8 +380,11 @@ def build_expr(g: Grammar) -> None {
     )));
     rule(g, "binary_expression", choice(*alts));
 
+    # Prefix operators. `|>` / `:>` are the prefix pipe-call forms
+    # (jac.spec `pipe_call`), e.g. `x = :> uuid4()` -- distinct from their
+    # binary (atomic-)pipe roles, disambiguated by the absence of a left operand.
     uops = [];
-    for u in ["not", "~", "-", "+", "*", "**", "&"] { uops.append(lit(u)); }
+    for u in ["not", "~", "-", "+", "*", "**", "&", "|>", ":>"] { uops.append(lit(u)); }
     rule(g, "unary_expression", precr(19, seq(
         field("operator", choice(*uops)),
         field("operand", sym("expression"))
@@ -404,7 +407,10 @@ def build_expr(g: Grammar) -> None {
     # `if/else` (`lambda: a if b else c` -> body is `(a if b else c)`).
     rule(g, "lambda_expression", precr(-1, seq(
         lit("lambda"),
-        opt(sym("lambda_params")),
+        # jac.spec: `("(" func_params ")" | lambda_params)` -- params may be
+        # parenthesized (`lambda (x: int) -> int { ... }`) or bare
+        # (`lambda x: int : expr`).
+        opt(choice(sym("parameter_list"), sym("lambda_params"))),
         opt(seq(lit("->"), sym("expression"))),
         choice(seq(lit(":"), sym("expression")), block())
     )));
@@ -598,8 +604,11 @@ def build_stmts(g: Grammar) -> None {
         sym("has_statement"),
         sym("ability"),
         sym("archetype"),
-        sym("expression_statement")
+        sym("expression_statement"),
+        sym("empty_statement")
     ));
+    # A lone `;` (e.g. an empty `else { ; }` / `except E { ; }` body).
+    rule(g, "empty_statement", lit(";"));
     # A single rule covering expression / assignment / augmented-assignment.
     # Parsing the leading expression once, then an OPTIONAL assignment tail,
     # avoids a GLR conflict over the whole expression grammar (which exploded
@@ -668,10 +677,12 @@ def build_stmts(g: Grammar) -> None {
     rule(g, "delete_statement", seq(lit("del"), sym("expression"), lit(";")));
     rule(g, "control_statement", seq(choice(lit("break"), lit("continue"), lit("skip")), lit(";")));
     rule(g, "disengage_statement", seq(lit("disengage"), lit(";")));
-    rule(g, "visit_statement", seq(
+    # prec.right so the optional trailing `;` is consumed here rather than left
+    # to stand alone as an empty_statement.
+    rule(g, "visit_statement", precr(1, seq(
         lit("visit"), opt(seq(lit(":"), sym("expression"), lit(":"))),
         sym("expression"), opt(choice(sym("else_clause"), lit(";")))
-    ));
+    )));
     rule(g, "report_statement", seq(lit("report"), sym("expression"), lit(";")));
     rule(g, "global_statement", seq(lit("global"), comma_sep1(name_ref()), lit(";")));
     rule(g, "nonlocal_statement", seq(lit("nonlocal"), comma_sep1(name_ref()), lit(";")));
@@ -756,8 +767,8 @@ def build_decls(g: Grammar) -> None {
     rule(g, "archetype", seq(
         decorators(),
         opt(lit("async")),
-        access_tag(),
         field("kind", choice(lit("obj"), lit("node"), lit("edge"), lit("walker"), lit("class"))),
+        access_tag(),
         field("name", name_ref()),
         opt(sym("type_params")),
         opt(seq(lit("("), opt(comma_sep1(sym("expression"))), lit(")"))),
@@ -785,8 +796,15 @@ def build_decls(g: Grammar) -> None {
         access_tag(),
         opt(field("name", name_ref())),
         opt(sym("type_params")),
-        opt(choice(seq(lit("with"), sym("expression")), sym("func_signature"))),
+        opt(choice(sym("event_clause"), sym("func_signature"))),
         choice(block(), seq(opt(lit("abs")), lit(";")), seq(lit("by"), sym("expression"), lit(";")))
+    ));
+    # Ability event signature: `with <NodeType> entry|exit` (object-spatial
+    # dispatch), e.g. `can create with Root entry { ... }`. The trailing
+    # entry/exit keyword can't be part of the expression, so it is consumed
+    # explicitly after it.
+    rule(g, "event_clause", seq(
+        lit("with"), sym("expression"), opt(choice(lit("entry"), lit("exit")))
     ));
 
     rule(g, "has_statement", seq(
