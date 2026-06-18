@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        run: npm install
+
+      - name: Regenerate grammar.json from Jac source
+        run: |
+          python -m pip install --quiet jaclang
+          jac run grammar.jac
+          git diff --exit-code src/grammar.json \
+            || (echo "::error::src/grammar.json is stale — run 'jac run grammar.jac'"; exit 1)
+
+      - name: Generate parser
+        run: npx tree-sitter generate src/grammar.json
+
+      - name: Corpus tests
+        run: npx tree-sitter test
+
+  grammar-drift:
+    # Regenerate the upstream EBNF (jac.spec) from a pinned jaclang and diff it
+    # against the committed snapshot. A diff means the language grammar moved
+    # and this tree-sitter grammar may need updating.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pinned jaclang
+        run: python -m pip install --quiet "jaclang==$(cat .jaclang-version)"
+
+      - name: Compare jac.spec
+        run: |
+          python - <<'PY'
+          import importlib.resources as r, pathlib, sys
+          spec = (r.files("jaclang") / "jac.spec").read_text()
+          snap = pathlib.Path("jac.spec.snapshot").read_text()
+          if spec != snap:
+              print("::warning::jaclang grammar (jac.spec) changed vs snapshot; "
+                    "review grammar.jac for needed updates")
+              sys.exit(1)
+          print("jac.spec matches snapshot")
+          PY

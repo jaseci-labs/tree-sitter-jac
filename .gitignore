@@ -1,0 +1,14 @@
+node_modules/
+build/
+*.log
+.DS_Store
+
+# tree-sitter generated native artifacts (grammar.json / parser.c ARE committed)
+*.o
+*.so
+*.dylib
+*.wasm
+log.html
+
+# corpus check scratch
+/tmp-corpus/
