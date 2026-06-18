@@ -1,0 +1,23 @@
+[project]
+name = "tree-sitter-jac"
+version = "0.1.0"
+description = "Tree-sitter grammar for the Jac programming language, authored in Jac using object-spatial programming."
+authors = [{ name = "Jason Mars", email = "jason@mars.ninja" }]
+license = "MIT"
+readme = "README.md"
+keywords = ["jac", "jaclang", "jaseci", "tree-sitter", "grammar", "parser"]
+
+[project.urls]
+repository = "https://github.com/jaseci-labs/tree-sitter-jac"
+homepage = "https://www.jac-lang.org"
+
+# The grammar is authored in Jac (grammar.jac) and emitted to src/grammar.json,
+# which `tree-sitter generate` compiles to src/parser.c. Build:
+#
+#   jac run grammar.jac                       # OSP graph -> src/grammar.json
+#   tree-sitter generate src/grammar.json     # -> src/parser.c
+#
+# (See README.md. A first-class "tree-sitter grammar" project kind that wraps
+#  this pipeline under `jac build` is proposed upstream as an enhancement.)
+[project.scripts]
+build-grammar = "jac run grammar.jac"

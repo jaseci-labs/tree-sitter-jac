@@ -15,21 +15,22 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install deps
-        run: npm install
-
-      - name: Regenerate grammar.json from Jac source
+      - name: Install tooling
         run: |
+          npm install -g tree-sitter-cli@0.22.6
           python -m pip install --quiet jaclang
+
+      - name: Rebuild grammar.json from Jac source
+        run: |
           jac run grammar.jac
           git diff --exit-code src/grammar.json \
             || (echo "::error::src/grammar.json is stale — run 'jac run grammar.jac'"; exit 1)
 
       - name: Generate parser
-        run: npx tree-sitter generate src/grammar.json
+        run: tree-sitter generate src/grammar.json
 
       - name: Corpus tests
-        run: npx tree-sitter test
+        run: tree-sitter test
 
   grammar-drift:
     # Regenerate the upstream EBNF (jac.spec) from a pinned jaclang and diff it

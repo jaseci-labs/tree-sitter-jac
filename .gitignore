@@ -31,3 +31,5 @@ __jac_gen__/
 /Makefile
 /go.mod
 /package-lock.json
+/package.json
+/tree-sitter.json

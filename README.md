@@ -35,12 +35,19 @@ the upstream language grammar surfaces as a failing check.
 
 ## Building
 
+Prerequisites: [jaclang](https://www.jac-lang.org) (`pip install jaclang`) and
+the tree-sitter CLI (`npm i -g tree-sitter-cli` or `cargo install tree-sitter-cli`).
+
 ```sh
-npm install                                  # tree-sitter CLI (dev dep)
-jac run grammar.jac                           # emit src/grammar.json
-npx tree-sitter generate src/grammar.json     # emit src/parser.c
-npx tree-sitter test                          # run corpus tests
+jac run grammar.jac                        # OSP grammar graph -> src/grammar.json
+tree-sitter generate src/grammar.json      # -> src/parser.c
+tree-sitter test                           # run corpus tests
 ```
+
+The committed `src/parser.c` is what editors compile, so **consumers need no
+build step** — only contributors regenerating the grammar do. This is a Jac
+project (`jac.toml`); there is intentionally no `package.json`/npm manifest
+(nvim-treesitter consumes `src/parser.c` + `queries/` directly).
 
 ## Status
 
