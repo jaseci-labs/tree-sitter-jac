@@ -33,25 +33,27 @@ jobs:
         run: tree-sitter test
 
   grammar-drift:
-    # Regenerate the upstream EBNF (jac.spec) from a pinned jaclang and diff it
-    # against the committed snapshot. A diff means the language grammar moved
+    # Fetch the upstream EBNF (jac.spec) for the pinned jaclang release and diff
+    # it against the committed snapshot. A diff means the language grammar moved
     # and this tree-sitter grammar may need updating.
+    #
+    # jac.spec is NOT shipped in the jaclang PyPI wheel (it isn't declared as
+    # package-data, and nothing in jaclang loads it at runtime), so a
+    # `pip install` cannot provide it. We read it straight from the source tree
+    # at the matching release tag instead. Tags are `jaclang-v<version>` and the
+    # spec lives at jac/jaclang/jac.spec in the jaseci-labs/jaseci monorepo.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install pinned jaclang
-        run: python -m pip install --quiet "jaclang==$(cat .jaclang-version)"
-
-      - name: Compare jac.spec
+      - name: Compare jac.spec against pinned jaclang release
         run: |
-          python - <<'PY'
-          import importlib.resources as r, pathlib, sys
-          spec = (r.files("jaclang") / "jac.spec").read_text()
-          snap = pathlib.Path("jac.spec.snapshot").read_text()
-          if spec != snap:
-              print("::warning::jaclang grammar (jac.spec) changed vs snapshot; "
-                    "review grammar.jac for needed updates")
-              sys.exit(1)
-          print("jac.spec matches snapshot")
-          PY
+          version="$(cat .jaclang-version)"
+          url="https://raw.githubusercontent.com/jaseci-labs/jaseci/jaclang-v${version}/jac/jaclang/jac.spec"
+          echo "Fetching jac.spec from $url"
+          curl -fsSL "$url" -o /tmp/jac.spec.upstream
+          if ! diff -u jac.spec.snapshot /tmp/jac.spec.upstream; then
+            echo "::warning::jaclang grammar (jac.spec) changed vs snapshot at jaclang-v${version}; review grammar.jac for needed updates"
+            exit 1
+          fi
+          echo "jac.spec matches snapshot at jaclang-v${version}"

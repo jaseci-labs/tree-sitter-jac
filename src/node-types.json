@@ -22,7 +22,11 @@
         "required": false,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -90,7 +94,11 @@
         "required": true,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -167,7 +175,11 @@
         "required": false,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -215,77 +227,6 @@
     }
   },
   {
-    "type": "atom",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "bool",
-          "named": true
-        },
-        {
-          "type": "builtin_type",
-          "named": true
-        },
-        {
-          "type": "comprehension",
-          "named": true
-        },
-        {
-          "type": "dict",
-          "named": true
-        },
-        {
-          "type": "ellipsis",
-          "named": true
-        },
-        {
-          "type": "float",
-          "named": true
-        },
-        {
-          "type": "integer",
-          "named": true
-        },
-        {
-          "type": "list",
-          "named": true
-        },
-        {
-          "type": "multistring",
-          "named": true
-        },
-        {
-          "type": "name_ref",
-          "named": true
-        },
-        {
-          "type": "null",
-          "named": true
-        },
-        {
-          "type": "parenthesized_expression",
-          "named": true
-        },
-        {
-          "type": "set",
-          "named": true
-        },
-        {
-          "type": "special_ref",
-          "named": true
-        },
-        {
-          "type": "string",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "attribute_expression",
     "named": true,
     "fields": {
@@ -294,7 +235,11 @@
         "required": true,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -304,7 +249,91 @@
         "required": true,
         "types": [
           {
-            "type": "primary_expression",
+            "type": "attribute_expression",
+            "named": true
+          },
+          {
+            "type": "await_expression",
+            "named": true
+          },
+          {
+            "type": "bool",
+            "named": true
+          },
+          {
+            "type": "builtin_type",
+            "named": true
+          },
+          {
+            "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "comprehension",
+            "named": true
+          },
+          {
+            "type": "dict",
+            "named": true
+          },
+          {
+            "type": "edge_reference",
+            "named": true
+          },
+          {
+            "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "float",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "index_expression",
+            "named": true
+          },
+          {
+            "type": "integer",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "multistring",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "set",
+            "named": true
+          },
+          {
+            "type": "spawn_expression",
+            "named": true
+          },
+          {
+            "type": "special_ref",
+            "named": true
+          },
+          {
+            "type": "string",
             "named": true
           }
         ]
@@ -385,7 +414,15 @@
             "named": false
           },
           {
+            "type": ":>",
+            "named": false
+          },
+          {
             "type": "<",
+            "named": false
+          },
+          {
+            "type": "<:",
             "named": false
           },
           {
@@ -504,7 +541,91 @@
         "required": true,
         "types": [
           {
-            "type": "primary_expression",
+            "type": "attribute_expression",
+            "named": true
+          },
+          {
+            "type": "await_expression",
+            "named": true
+          },
+          {
+            "type": "bool",
+            "named": true
+          },
+          {
+            "type": "builtin_type",
+            "named": true
+          },
+          {
+            "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "comprehension",
+            "named": true
+          },
+          {
+            "type": "dict",
+            "named": true
+          },
+          {
+            "type": "edge_reference",
+            "named": true
+          },
+          {
+            "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "float",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "index_expression",
+            "named": true
+          },
+          {
+            "type": "integer",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "multistring",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "set",
+            "named": true
+          },
+          {
+            "type": "spawn_expression",
+            "named": true
+          },
+          {
+            "type": "special_ref",
+            "named": true
+          },
+          {
+            "type": "string",
             "named": true
           }
         ]
@@ -549,7 +670,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         },
         {
@@ -841,7 +966,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -856,7 +985,11 @@
       "required": true,
       "types": [
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -890,7 +1023,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1045,7 +1182,11 @@
         "required": true,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -1083,7 +1224,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1106,7 +1251,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1121,7 +1270,31 @@
       "required": true,
       "types": [
         {
+          "type": "attribute_expression",
+          "named": true
+        },
+        {
+          "type": "await_expression",
+          "named": true
+        },
+        {
           "type": "binary_expression",
+          "named": true
+        },
+        {
+          "type": "bool",
+          "named": true
+        },
+        {
+          "type": "builtin_type",
+          "named": true
+        },
+        {
+          "type": "call_expression",
+          "named": true
+        },
+        {
+          "type": "comprehension",
           "named": true
         },
         {
@@ -1129,11 +1302,71 @@
           "named": true
         },
         {
+          "type": "dict",
+          "named": true
+        },
+        {
+          "type": "edge_reference",
+          "named": true
+        },
+        {
+          "type": "ellipsis",
+          "named": true
+        },
+        {
+          "type": "float",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "index_expression",
+          "named": true
+        },
+        {
+          "type": "integer",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
+          "named": true
+        },
+        {
           "type": "lambda_expression",
           "named": true
         },
         {
-          "type": "primary_expression",
+          "type": "list",
+          "named": true
+        },
+        {
+          "type": "multistring",
+          "named": true
+        },
+        {
+          "type": "null",
+          "named": true
+        },
+        {
+          "type": "parenthesized_expression",
+          "named": true
+        },
+        {
+          "type": "set",
+          "named": true
+        },
+        {
+          "type": "spawn_expression",
+          "named": true
+        },
+        {
+          "type": "special_ref",
+          "named": true
+        },
+        {
+          "type": "string",
           "named": true
         },
         {
@@ -1346,7 +1579,11 @@
       "required": true,
       "types": [
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1361,7 +1598,11 @@
         "required": true,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -1406,7 +1647,11 @@
         "required": true,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -1518,7 +1763,11 @@
       "required": false,
       "types": [
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1556,6 +1805,10 @@
       "required": true,
       "types": [
         {
+          "type": "identifier",
+          "named": true
+        },
+        {
           "type": "import_items",
           "named": true
         },
@@ -1564,7 +1817,7 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1579,7 +1832,91 @@
         "required": true,
         "types": [
           {
-            "type": "primary_expression",
+            "type": "attribute_expression",
+            "named": true
+          },
+          {
+            "type": "await_expression",
+            "named": true
+          },
+          {
+            "type": "bool",
+            "named": true
+          },
+          {
+            "type": "builtin_type",
+            "named": true
+          },
+          {
+            "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "comprehension",
+            "named": true
+          },
+          {
+            "type": "dict",
+            "named": true
+          },
+          {
+            "type": "edge_reference",
+            "named": true
+          },
+          {
+            "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "float",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "index_expression",
+            "named": true
+          },
+          {
+            "type": "integer",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "multistring",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "set",
+            "named": true
+          },
+          {
+            "type": "spawn_expression",
+            "named": true
+          },
+          {
+            "type": "special_ref",
+            "named": true
+          },
+          {
+            "type": "string",
             "named": true
           }
         ]
@@ -1689,11 +2026,15 @@
           "named": true
         },
         {
+          "type": "identifier",
+          "named": true
+        },
+        {
           "type": "integer",
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "kwesc_name",
           "named": true
         },
         {
@@ -1762,7 +2103,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1784,25 +2129,6 @@
     }
   },
   {
-    "type": "name_ref",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "kwesc_name",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "nonlocal_statement",
     "named": true,
     "fields": {},
@@ -1811,7 +2137,11 @@
       "required": true,
       "types": [
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -1845,7 +2175,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         },
         {
@@ -1898,50 +2232,15 @@
       "required": true,
       "types": [
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         },
         {
           "type": "or_pattern",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "primary_expression",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "atom",
-          "named": true
-        },
-        {
-          "type": "attribute_expression",
-          "named": true
-        },
-        {
-          "type": "await_expression",
-          "named": true
-        },
-        {
-          "type": "call_expression",
-          "named": true
-        },
-        {
-          "type": "edge_reference",
-          "named": true
-        },
-        {
-          "type": "index_expression",
-          "named": true
-        },
-        {
-          "type": "spawn_expression",
           "named": true
         }
       ]
@@ -2035,7 +2334,11 @@
       "required": false,
       "types": [
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         },
         {
@@ -2369,7 +2672,11 @@
         "required": true,
         "types": [
           {
-            "type": "name_ref",
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
             "named": true
           }
         ]
@@ -2418,7 +2725,11 @@
           "named": true
         },
         {
-          "type": "name_ref",
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "kwesc_name",
           "named": true
         }
       ]
@@ -2709,6 +3020,10 @@
     "named": false
   },
   {
+    "type": ":>",
+    "named": false
+  },
+  {
     "type": ";",
     "named": false
   },
@@ -2742,6 +3057,10 @@
   },
   {
     "type": "<.",
+    "named": false
+  },
+  {
+    "type": "<:",
     "named": false
   },
   {

@@ -66,7 +66,7 @@
 [ "-->" "<--" "<-->" "++>" "<++" "<++>" "->:" ":->" "<-:" ":<-" "+>:" ":+>" "<+:" ":<+" ] @operator
 
 ; Decorators
-(decorator? "@" @attribute)
+(decorator_list "@" @attribute)
 
 ; Punctuation
 [ "(" ")" "[" "]" "{" "}" ] @punctuation.bracket

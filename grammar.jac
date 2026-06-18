@@ -239,9 +239,13 @@ def rule(g: Grammar, name: str, body: GNode) -> None {
 # ===========================================================================
 
 """(NAME | KWESC_NAME) -- the two identifier forms. References the SHARED
-`name_ref` rule rather than inlining the 2-way choice at ~50 sites, so
-tree-sitter shares those states instead of duplicating them."""
-def name_ref() -> GNode { return sym("name_ref"); }
+`_name_ref` rule rather than inlining the 2-way choice at ~50 sites, so
+tree-sitter shares those states instead of duplicating them. The rule is
+HIDDEN (leading `_`): hidden rules still share parse states, but are elided
+from the syntax tree, so `identifier`/`kwesc_name` surface directly under the
+parent field (e.g. `has_var name: (identifier)`) instead of being buried one
+level down under a `name_ref` node -- which keeps the queries flat."""
+def name_ref() -> GNode { return sym("_name_ref"); }
 
 """access_tag ::= (":" ("pub" | "priv" | "protect")?)?"""
 def access_tag() -> GNode {
@@ -268,7 +272,7 @@ def block() -> GNode {
 def build_tokens(g: Grammar) -> None {
     rule(g, "identifier", tok(pat("[a-zA-Z_][a-zA-Z0-9_]*")));
     rule(g, "kwesc_name", tok(pat("`[a-zA-Z_][a-zA-Z0-9_]*")));
-    rule(g, "name_ref", choice(sym("identifier"), sym("kwesc_name")));
+    rule(g, "_name_ref", choice(sym("identifier"), sym("kwesc_name")));
     rule(g, "integer", tok(choice(
         pat("0[xX][0-9a-fA-F_]+"),
         pat("0[bB][01_]+"),
@@ -327,7 +331,7 @@ def build_expr(g: Grammar) -> None {
         sym("ternary_expression"),
         sym("lambda_expression"),
         sym("connect_expression"),
-        sym("primary_expression")
+        sym("_primary_expression")
     ));
 
     # (operator, precedence) for left-associative binary operators.
@@ -337,7 +341,12 @@ def build_expr(g: Grammar) -> None {
         ["in", 11], ["is", 11],
         ["|", 12], ["^", 13], ["&", 14], ["<<", 15], [">>", 15],
         ["+", 16], ["-", 16], ["*", 17], ["/", 17], ["//", 17], ["%", 17],
-        ["@", 17], ["by", 4]
+        ["@", 17], ["by", 4],
+        # atomic pipes (jac.spec: atomic_pipe / atomic_pipe_back). Both
+        # left-assoc and bind between connect_expression (20) and
+        # spawn_expression (23): `:>` looser than `<:`, matching the spec's
+        # `atomic_pipe ::= atomic_pipe_back (":>" atomic_pipe_back)*` cascade.
+        [":>", 21], ["<:", 22]
     ];
     # NOTE: `as` is intentionally NOT a binary (cast) operator here. It is the
     # binding keyword in except/with/import clauses; treating it as an operator
@@ -402,8 +411,8 @@ def build_expr(g: Grammar) -> None {
     rule(g, "lambda_params", comma_sep1(sym("param")));
 
     # ---- primary / atoms -------------------------------------------------
-    rule(g, "primary_expression", choice(
-        sym("atom"),
+    rule(g, "_primary_expression", choice(
+        sym("_atom"),
         sym("call_expression"),
         sym("index_expression"),
         sym("attribute_expression"),
@@ -411,7 +420,7 @@ def build_expr(g: Grammar) -> None {
         sym("spawn_expression"),
         sym("edge_reference")
     ));
-    rule(g, "atom", choice(
+    rule(g, "_atom", choice(
         name_ref(),
         sym("integer"),
         sym("float"),
@@ -435,12 +444,12 @@ def build_expr(g: Grammar) -> None {
     ));
 
     rule(g, "attribute_expression", precl(28, seq(
-        field("object", sym("primary_expression")),
+        field("object", sym("_primary_expression")),
         choice(lit("."), lit(".>"), lit("<."), lit("?.")),
         field("attr", name_ref())
     )));
     rule(g, "call_expression", precl(28, seq(
-        field("function", sym("primary_expression")),
+        field("function", sym("_primary_expression")),
         sym("argument_list")
     )));
     rule(g, "argument_list", seq(
@@ -453,7 +462,7 @@ def build_expr(g: Grammar) -> None {
         sym("expression")
     ));
     rule(g, "index_expression", precl(28, seq(
-        field("object", sym("primary_expression")),
+        field("object", sym("_primary_expression")),
         opt(lit("?")),
         lit("["), sym("slice"), lit("]")
     )));
