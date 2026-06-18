@@ -12,3 +12,7 @@ log.html
 
 # corpus check scratch
 /tmp-corpus/
+
+# Jac compiler cache
+.jac/
+__jac_gen__/
