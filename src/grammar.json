@@ -16,10 +16,6 @@
       "param"
     ],
     [
-      "capture_pattern",
-      "class_pattern"
-    ],
-    [
       "expression",
       "for_in_clause"
     ]

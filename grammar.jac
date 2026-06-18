@@ -993,7 +993,6 @@ with entry {
         "extras": [pat("\\s").emit(), sym("comment").emit()],
         "conflicts": [
             ["param"],
-            ["capture_pattern", "class_pattern"],
             # Comprehension element vs. for-clause target: in `[<e> for <t> in ...]`
             # both `<e>` and the comma-separated `<t>` are expression-like, so
             # GLR must keep both interpretations until the `for`/`in` resolves it.
