@@ -619,10 +619,13 @@ def build_stmts(g: Grammar) -> None {
     rule(g, "expression_statement", seq(
         field("left", sym("expression")),
         opt(choice(
+            # `x: T`, `x: T = v` -- a type annotation, optionally with value(s).
             seq(
-                opt(seq(lit(":"), field("type", sym("expression")))),
-                rep1(seq(lit("="), field("right", sym("expression"))))
+                lit(":"), field("type", sym("expression")),
+                opt(rep1(seq(lit("="), field("right", sym("expression")))))
             ),
+            # `x = v`, `x = v = w` -- plain (chained) assignment, no annotation.
+            rep1(seq(lit("="), field("right", sym("expression")))),
             seq(field("operator", choice(*augops)), field("right", sym("expression")))
         )),
         lit(";")
