@@ -1,0 +1,211 @@
+==================
+object archetype with has and access tag
+==================
+
+obj:pub Person {
+    has name: str;
+    has age: int = 0;
+}
+
+---
+
+(source_file
+  (element
+    (archetype
+      (identifier)
+      (archetype_member
+        (has_statement
+          (has_var
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type))))))
+      (archetype_member
+        (has_statement
+          (has_var
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type)))
+            (expression
+              (integer))))))))
+
+==================
+walker with ability event clause
+==================
+
+walker Crawler {
+    can start with entry {
+        visit [-->];
+    }
+    can finish with Root exit;
+}
+
+---
+
+(source_file
+  (element
+    (archetype
+      (identifier)
+      (archetype_member
+        (ability
+          (identifier)
+          (event_clause
+            (expression
+              (identifier)))
+          (block_body
+            (statement
+              (visit_statement
+                (expression
+                  (edge_reference
+                    (edge_op))))))))
+      (archetype_member
+        (ability
+          (identifier)
+          (event_clause
+            (expression
+              (identifier))))))))
+
+==================
+ability with func signature
+==================
+
+def add(a: int, b: int) -> int {
+    return a + b;
+}
+
+---
+
+(source_file
+  (element
+    (ability
+      (identifier)
+      (func_signature
+        (parameter_list
+          (param
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type))))
+          (param
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type)))))
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (binary_expression
+                (expression
+                  (identifier))
+                (expression
+                  (identifier))))))))))
+
+==================
+enum
+==================
+
+enum Color {
+    RED = 1,
+    GREEN = 2
+}
+
+---
+
+(source_file
+  (element
+    (enum
+      (identifier)
+      (enum_member
+        (identifier)
+        (expression
+          (integer)))
+      (enum_member
+        (identifier)
+        (expression
+          (integer))))))
+
+==================
+impl with dotted target and signature
+==================
+
+impl Person.greet(other: str) -> str {
+    return other;
+}
+
+impl Crawler.entry {
+    visit [-->];
+}
+
+---
+
+(source_file
+  (element
+    (impl
+      (impl_target
+        (impl_target_name
+          (identifier))
+        (impl_target_name
+          (identifier)))
+      (func_signature
+        (parameter_list
+          (param
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type)))))
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (identifier)))))))
+  (element
+    (impl
+      (impl_target
+        (impl_target_name
+          (identifier))
+        (impl_target_name))
+      (block_body
+        (statement
+          (visit_statement
+            (expression
+              (edge_reference
+                (edge_op)))))))))
+
+==================
+node and edge archetypes
+==================
+
+node City { has name: str; }
+edge Road { has dist: int; }
+
+---
+
+(source_file
+  (element
+    (archetype
+      (identifier)
+      (archetype_member
+        (has_statement
+          (has_var
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type))))))))
+  (element
+    (archetype
+      (identifier)
+      (archetype_member
+        (has_statement
+          (has_var
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type)))))))))

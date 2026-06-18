@@ -32,6 +32,14 @@ jobs:
       - name: Corpus tests
         run: tree-sitter test
 
+      - name: Validate queries against the real tree
+        run: |
+          test/parse-clean.sh examples/sample.jac
+          for q in queries/*.scm; do
+            echo "linting $q"
+            tree-sitter query "$q" examples/sample.jac >/dev/null
+          done
+
   grammar-drift:
     # Fetch the upstream EBNF (jac.spec) for the pinned jaclang release and diff
     # it against the committed snapshot. A diff means the language grammar moved

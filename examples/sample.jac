@@ -1,0 +1,67 @@
+"""A representative Jac module exercising the breadth of the grammar.
+
+Used by CI to lint the highlight/locals/folds/injections queries against a
+real parse tree (every node/field they reference must exist).
+"""
+
+import os;
+import from typing { Optional }
+import from .utils { helper as h }
+
+glob registry: dict = {};
+
+obj:pub Person {
+    has name: str;
+    has age: int = 0;
+    has tags: list[str] = [];
+
+    def greet(other: str) -> str {
+        return f"Hi {other}, I am {self.name}";
+    }
+}
+
+impl Person.birthday {
+    self.age += 1;
+}
+
+node City {
+    has name: str;
+}
+
+edge Road {
+    has dist: int;
+}
+
+walker Tour {
+    has visited: list = [];
+
+    can start with entry {
+        here.visited.append(here.name);
+        visit [-->][?:City];
+    }
+
+    can finish with Root exit;
+}
+
+enum Status {
+    ACTIVE = 1,
+    DONE = 2
+}
+
+def transform(items: list) -> list {
+    evens = [i for i in items if i % 2 == 0];
+    pairs = {k: v for k, v in enumerate(items)};
+    total = sum(x for x in evens);
+    fn = lambda (a: int, b: int) -> int { return a + b; };
+    return [fn(e, total) for e in evens];
+}
+
+with entry {
+    p = Person(name="Ada");
+    label = p.greet("world") if p.age > 0 else "n/a";
+    result = data |> clean :> normalize;
+    match label {
+        case "n/a": print("missing");
+        case _: print(label);
+    }
+}

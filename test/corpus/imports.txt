@@ -1,0 +1,93 @@
+==================
+simple and aliased imports
+==================
+
+import os;
+import numpy as np;
+
+---
+
+(source_file
+  (element
+    (import_statement
+      (import_path
+        (dotted_name
+          (identifier)))))
+  (element
+    (import_statement
+      (import_path
+        (dotted_name
+          (identifier)))
+      (identifier))))
+
+==================
+from-import items without trailing semicolon
+==================
+
+import from tempfile { mkdtemp }
+import from pathlib { Path, PurePath }
+
+---
+
+(source_file
+  (element
+    (import_statement
+      (import_path
+        (dotted_name
+          (identifier)))
+      (import_items
+        (identifier))))
+  (element
+    (import_statement
+      (import_path
+        (dotted_name
+          (identifier)))
+      (import_items
+        (identifier)
+        (identifier)))))
+
+==================
+relative imports with dotted paths
+==================
+
+import from .utils { helper }
+import from ...components.nested { Widget }
+
+---
+
+(source_file
+  (element
+    (import_statement
+      (import_path
+        (relative_prefix)
+        (dotted_name
+          (identifier)))
+      (import_items
+        (identifier))))
+  (element
+    (import_statement
+      (import_path
+        (relative_prefix)
+        (dotted_name
+          (dotted_name
+            (identifier))
+          (identifier)))
+      (import_items
+        (identifier)))))
+
+==================
+string-path import
+==================
+
+import from "@jac/runtime" { jacSsoLogin, jacLogout }
+
+---
+
+(source_file
+  (element
+    (import_statement
+      (import_path
+        (string))
+      (import_items
+        (identifier)
+        (identifier)))))

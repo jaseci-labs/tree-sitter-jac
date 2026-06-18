@@ -1,0 +1,332 @@
+==================
+list comprehension with filter
+==================
+
+with entry {
+    evens = [i for i in range(10) if i % 2 == 0];
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (comprehension
+                (list_comprehension
+                  (expression
+                    (identifier))
+                  (comprehension_clauses
+                    (for_in_clause
+                      (identifier)
+                      (expression
+                        (call_expression
+                          (identifier)
+                          (argument_list
+                            (argument
+                              (expression
+                                (integer)))))))
+                    (if_clause
+                      (expression
+                        (binary_expression
+                          (expression
+                            (binary_expression
+                              (expression
+                                (identifier))
+                              (expression
+                                (integer))))
+                          (expression
+                            (integer)))))))))))))))
+
+==================
+dict comprehension with tuple target
+==================
+
+with entry {
+    m = {k: v for k, v in items() if k != "skip"};
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (comprehension
+                (dict_comprehension
+                  (expression
+                    (identifier))
+                  (expression
+                    (identifier))
+                  (comprehension_clauses
+                    (for_in_clause
+                      (identifier)
+                      (identifier)
+                      (expression
+                        (call_expression
+                          (identifier)
+                          (argument_list))))
+                    (if_clause
+                      (expression
+                        (binary_expression
+                          (expression
+                            (identifier))
+                          (expression
+                            (string)))))))))))))))
+
+==================
+generator expression as call argument
+==================
+
+with entry {
+    ok = any(d.valid for d in items if d.ready);
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (call_expression
+                (builtin_type)
+                (argument_list
+                  (argument
+                    (expression
+                      (attribute_expression
+                        (identifier)
+                        (identifier)))
+                    (comprehension_clauses
+                      (for_in_clause
+                        (identifier)
+                        (expression
+                          (identifier)))
+                      (if_clause
+                        (expression
+                          (attribute_expression
+                            (identifier)
+                            (identifier)))))))))))))))
+
+==================
+lambda forms
+==================
+
+with entry {
+    f = lambda x: int : x + 1;
+    g = lambda (a: int, b: int) -> int { return a + b; };
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (lambda_expression
+                (lambda_params
+                  (param
+                    (identifier)
+                    (type_annotation
+                      (expression
+                        (builtin_type)))))
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (integer))))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (lambda_expression
+                (parameter_list
+                  (param
+                    (identifier)
+                    (type_annotation
+                      (expression
+                        (builtin_type))))
+                  (param
+                    (identifier)
+                    (type_annotation
+                      (expression
+                        (builtin_type)))))
+                (expression
+                  (builtin_type))
+                (block_body
+                  (statement
+                    (return_statement
+                      (expression
+                        (binary_expression
+                          (expression
+                            (identifier))
+                          (expression
+                            (identifier)))))))))))))))
+
+==================
+atomic pipes and prefix pipe-call
+==================
+
+with entry {
+    x = a :> process <: transform;
+    y = data |> clean;
+    z = :> uuid4();
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (binary_expression
+                (expression
+                  (identifier))
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (identifier))))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (binary_expression
+                (expression
+                  (identifier))
+                (expression
+                  (identifier))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (unary_expression
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list)))))))))))
+
+==================
+filter comprehension on primary
+==================
+
+with entry {
+    visit [-->][?:NodeType];
+    found = nodes(?score > 5, active == true);
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (visit_statement
+            (expression
+              (filter_expression
+                (edge_reference
+                  (edge_op))
+                (filter_compr
+                  (expression
+                    (identifier)))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (filter_expression
+                (identifier)
+                (filter_compr
+                  (expression
+                    (binary_expression
+                      (expression
+                        (identifier))
+                      (expression
+                        (integer))))
+                  (expression
+                    (binary_expression
+                      (expression
+                        (identifier))
+                      (expression
+                        (identifier)))))))))))))
+
+==================
+ternary and walrus
+==================
+
+with entry {
+    v = a if cond else b;
+    if (n := compute()) > 0 {
+        report n;
+    }
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (ternary_expression
+                (expression
+                  (identifier))
+                (expression
+                  (identifier))
+                (expression
+                  (identifier))))))
+        (statement
+          (if_statement
+            (expression
+              (binary_expression
+                (expression
+                  (parenthesized_expression
+                    (expression
+                      (binary_expression
+                        (expression
+                          (identifier))
+                        (expression
+                          (call_expression
+                            (identifier)
+                            (argument_list)))))))
+                (expression
+                  (integer))))
+            (block_body
+              (statement
+                (report_statement
+                  (expression
+                    (identifier)))))))))))
