@@ -459,7 +459,8 @@ def build_expr(g: Grammar) -> None {
         seq(field("name", name_ref()), lit("="), sym("expression")),
         seq(lit("**"), sym("expression")),
         seq(lit("*"), sym("expression")),
-        sym("expression")
+        # bare expression, optionally a generator expression `f(x for x in y)`
+        seq(sym("expression"), opt(sym("comprehension_clauses")))
     ));
     rule(g, "index_expression", precl(28, seq(
         field("object", sym("_primary_expression")),
@@ -499,19 +500,32 @@ def build_collections(g: Grammar) -> None {
         sym("list_comprehension"), sym("dict_comprehension"), sym("set_comprehension")
     ));
     rule(g, "list_comprehension", seq(
-        lit("["), sym("expression"), rep1(sym("for_in_clause")), rep(sym("if_clause")), lit("]")
+        lit("["), sym("expression"), sym("comprehension_clauses"), lit("]")
     ));
     rule(g, "set_comprehension", seq(
-        lit("{"), sym("expression"), rep1(sym("for_in_clause")), rep(sym("if_clause")), lit("}")
+        lit("{"), sym("expression"), sym("comprehension_clauses"), lit("}")
     ));
     rule(g, "dict_comprehension", seq(
         lit("{"), sym("expression"), lit(":"), sym("expression"),
-        rep1(sym("for_in_clause")), rep(sym("if_clause")), lit("}")
+        sym("comprehension_clauses"), lit("}")
     ));
-    rule(g, "for_in_clause", seq(
-        opt(lit("async")), lit("for"), field("left", sym("expression")),
+    # jac.spec: comprehension_clauses ::= compr_clause+ where each clause is a
+    # `for X in Y` followed by zero+ trailing `if`s. Clauses INTERLEAVE
+    # (`for a in b if c for d in e`), so this is rep1 of (for + ifs), not "all
+    # fors then all ifs".
+    rule(g, "comprehension_clauses", rep1(seq(sym("for_in_clause"), rep(sym("if_clause")))));
+    # The target is a primary-expression list (jac.spec uses `atomic_chain`),
+    # NOT a full expression -- a full expression would swallow the `in`
+    # separator as a binary `in` comparison (`for (i in y)`). Comma-separated to
+    # allow tuple targets `for k, v in ...`.
+    # prec 2 (> ternary's 1) so a trailing `if` reduces the iterable and
+    # attaches as a comprehension filter instead of starting an (else-less)
+    # ternary on the iterable.
+    rule(g, "for_in_clause", precr(2, seq(
+        opt(lit("async")), lit("for"),
+        field("left", comma_sep1(sym("_primary_expression"))),
         lit("in"), field("right", sym("expression"))
-    ));
+    )));
     rule(g, "if_clause", seq(lit("if"), sym("expression")));
 }
 
@@ -808,11 +822,26 @@ def build_decls(g: Grammar) -> None {
         lit(";")
     ));
 
+    # The impl target is a dotted name PATH (`Class.method`, `Walker.entry`,
+    # `Obj.init`), NOT a general expression -- using `expression` made
+    # `impl X.f(params)` greedily parse as a call_expression, so the func
+    # signature's `(` collided and every signature-bearing impl failed.
     rule(g, "impl", seq(
         decorators(), lit("impl"),
-        sym("expression"),
-        opt(sym("func_signature")),
+        field("target", sym("impl_target")),
+        opt(choice(seq(lit("with"), sym("expression")), sym("func_signature"))),
         choice(block(), seq(lit("by"), sym("expression"), lit(";")), lit(";"))
+    ));
+    rule(g, "impl_target", precl(1, seq(
+        sym("impl_target_name"),
+        rep(seq(lit("."), sym("impl_target_name")))
+    )));
+    # impl_target_name (jac.spec): NAME/KWESC plus a few contextual keywords
+    # that name abilities/ctors. Keyword extraction (word: identifier) keeps
+    # these usable as ordinary identifiers elsewhere.
+    rule(g, "impl_target_name", choice(
+        name_ref(),
+        lit("init"), lit("postinit"), lit("entry"), lit("exit"), lit("default")
     ));
 
     rule(g, "type_alias", seq(
@@ -826,9 +855,9 @@ def build_decls(g: Grammar) -> None {
         lit("]")
     ));
 
-    rule(g, "sem_def", seq(
-        lit("sem"), sym("expression"), choice(lit("="), lit("is")), rep(sym("string")), lit(";")
-    ));
+    rule(g, "sem_def", precr(1, seq(
+        lit("sem"), sym("impl_target"), choice(lit("="), lit("is")), rep(sym("string")), opt(lit(";"))
+    )));
 }
 
 # ===========================================================================
@@ -836,23 +865,32 @@ def build_decls(g: Grammar) -> None {
 # ===========================================================================
 
 def build_imports(g: Grammar) -> None {
-    rule(g, "import_statement", seq(
+    # prec.right so the optional trailing `;` after the `{ ... }` items form is
+    # shifted into THIS statement rather than left dangling (a benign
+    # shift/reduce on the optional terminator).
+    rule(g, "import_statement", precr(1, seq(
         choice(lit("import"), lit("include")),
         opt(lit("type")),
         opt(seq(lit("from"), sym("import_path"))),
         choice(
-            sym("import_items"),
-            seq(sym("import_path"), opt(seq(lit("as"), name_ref())))
-        ),
-        lit(";")
-    ));
+            # The `{ ... }` items form ends in a block, so (like every other
+            # block-bodied construct in Jac) it self-terminates and the trailing
+            # `;` is optional -- real Jac omits it after `import from x { ... }`.
+            seq(sym("import_items"), opt(lit(";"))),
+            seq(sym("import_path"), opt(seq(lit("as"), name_ref())), lit(";"))
+        )
+    )));
+    # precl(2) so extending the path (`a` + `.b`) binds TIGHTER than reducing
+    # the enclosing `import_path` relative branch (precr 1) -- otherwise a
+    # `...pkg.sub` path reduces after the first segment and orphans `.sub`.
     rule(g, "dotted_name", choice(
         name_ref(),
-        precl(1, seq(sym("dotted_name"), lit("."), name_ref()))
+        precl(2, seq(sym("dotted_name"), lit("."), name_ref()))
     ));
-    # Left-recursive relative-import prefix (`.`, `..`, `...`); explicit
-    # recursion + prec.left resolves the dots shift/reduce without a GLR
-    # dynamic conflict (which blows up the parse-table size).
+    # Leading relative-import dots: `.`, `..`, `...` (and longer runs).
+    # Explicit left-recursion + prec.left resolves the dot shift/reduce without
+    # a GLR dynamic conflict. The dots only ever precede the path (never follow
+    # a NAME), so they never clash with `dotted_name`'s own `.` separators.
     rule(g, "relative_prefix", choice(
         choice(lit("."), lit("...")),
         precl(1, seq(sym("relative_prefix"), choice(lit("."), lit("..."))))
@@ -860,7 +898,7 @@ def build_imports(g: Grammar) -> None {
     rule(g, "import_path", choice(
         sym("string"),
         sym("dotted_name"),
-        precr(2, seq(sym("relative_prefix"), opt(sym("dotted_name"))))
+        precr(1, seq(sym("relative_prefix"), opt(choice(sym("string"), sym("dotted_name")))))
     ));
     rule(g, "import_items", seq(
         lit("{"),
@@ -917,7 +955,11 @@ with entry {
         "extras": [pat("\\s").emit(), sym("comment").emit()],
         "conflicts": [
             ["param"],
-            ["capture_pattern", "class_pattern"]
+            ["capture_pattern", "class_pattern"],
+            # Comprehension element vs. for-clause target: in `[<e> for <t> in ...]`
+            # both `<e>` and the comma-separated `<t>` are expression-like, so
+            # GLR must keep both interpretations until the `for`/`in` resolves it.
+            ["expression", "for_in_clause"]
         ],
         "externals": [],
         "inline": [],
