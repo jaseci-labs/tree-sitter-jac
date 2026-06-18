@@ -422,9 +422,26 @@ def build_expr(g: Grammar) -> None {
         sym("call_expression"),
         sym("index_expression"),
         sym("attribute_expression"),
+        sym("filter_expression"),
         sym("await_expression"),
         sym("spawn_expression"),
         sym("edge_reference")
+    ));
+    # Object-spatial filter comprehension applied to a primary:
+    # `nodes(?score > 5)` / `[-->][?:NodeType, val == 1]` (jac.spec
+    # filter_compr_inner / filter_compr_bracket).
+    rule(g, "filter_expression", precl(28, seq(
+        field("object", sym("_primary_expression")),
+        choice(
+            seq(lit("("), sym("filter_compr"), lit(")")),
+            seq(lit("["), sym("filter_compr"), lit("]"))
+        )
+    )));
+    rule(g, "filter_compr", seq(
+        lit("?"),
+        opt(seq(lit(":"), sym("expression"))),
+        opt(lit(",")),
+        opt(comma_sep1(sym("expression")))
     ));
     rule(g, "_atom", choice(
         name_ref(),

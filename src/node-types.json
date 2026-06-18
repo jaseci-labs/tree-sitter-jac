@@ -293,6 +293,10 @@
             "named": true
           },
           {
+            "type": "filter_expression",
+            "named": true
+          },
+          {
             "type": "float",
             "named": true
           },
@@ -582,6 +586,10 @@
           },
           {
             "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "filter_expression",
             "named": true
           },
           {
@@ -1357,6 +1365,10 @@
           "named": true
         },
         {
+          "type": "filter_expression",
+          "named": true
+        },
+        {
           "type": "float",
           "named": true
         },
@@ -1518,6 +1530,135 @@
     }
   },
   {
+    "type": "filter_compr",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "filter_expression",
+    "named": true,
+    "fields": {
+      "object": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "attribute_expression",
+            "named": true
+          },
+          {
+            "type": "await_expression",
+            "named": true
+          },
+          {
+            "type": "bool",
+            "named": true
+          },
+          {
+            "type": "builtin_type",
+            "named": true
+          },
+          {
+            "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "comprehension",
+            "named": true
+          },
+          {
+            "type": "dict",
+            "named": true
+          },
+          {
+            "type": "edge_reference",
+            "named": true
+          },
+          {
+            "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "filter_expression",
+            "named": true
+          },
+          {
+            "type": "float",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "index_expression",
+            "named": true
+          },
+          {
+            "type": "integer",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "multistring",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "set",
+            "named": true
+          },
+          {
+            "type": "spawn_expression",
+            "named": true
+          },
+          {
+            "type": "special_ref",
+            "named": true
+          },
+          {
+            "type": "string",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "filter_compr",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "for_in_clause",
     "named": true,
     "fields": {
@@ -1563,6 +1704,10 @@
           },
           {
             "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "filter_expression",
             "named": true
           },
           {
@@ -2041,6 +2186,10 @@
           },
           {
             "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "filter_expression",
             "named": true
           },
           {
@@ -3461,11 +3610,11 @@
   },
   {
     "type": "float",
-    "named": false
+    "named": true
   },
   {
     "type": "float",
-    "named": true
+    "named": false
   },
   {
     "type": "flow",
