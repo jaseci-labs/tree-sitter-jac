@@ -1,0 +1,252 @@
+==================
+basic f-string with interpolation
+==================
+
+with entry {
+    msg = f"Hello {name}, you are {age} years old";
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_content)
+                (fstring_interpolation
+                  (expression
+                    (identifier)))
+                (fstring_content)
+                (fstring_interpolation
+                  (expression
+                    (identifier)))
+                (fstring_content)
+                (fstring_end)))))))))
+
+==================
+format spec and conversion
+==================
+
+with entry {
+    a = f"{n / 1000:.1f}k";
+    b = f"{value!r}";
+    c = f"{a.kind:7} {a.name}";
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_interpolation
+                  (expression
+                    (binary_expression
+                      (expression
+                        (identifier))
+                      (expression
+                        (integer))))
+                  (fstring_format
+                    (fstring_content)))
+                (fstring_content)
+                (fstring_end)))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_interpolation
+                  (expression
+                    (identifier))
+                  (fstring_conversion))
+                (fstring_end)))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_interpolation
+                  (expression
+                    (attribute_expression
+                      (identifier)
+                      (identifier)))
+                  (fstring_format
+                    (fstring_content)))
+                (fstring_content)
+                (fstring_interpolation
+                  (expression
+                    (attribute_expression
+                      (identifier)
+                      (identifier))))
+                (fstring_end)))))))))
+
+==================
+escapes, nested call, single quotes
+==================
+
+with entry {
+    a = f"{{literal}} {real}";
+    b = f"got {type(x).__name__}";
+    c = f'value is {y}';
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_content)
+                (fstring_interpolation
+                  (expression
+                    (identifier)))
+                (fstring_end)))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_content)
+                (fstring_interpolation
+                  (expression
+                    (attribute_expression
+                      (call_expression
+                        (builtin_type)
+                        (argument_list
+                          (argument
+                            (expression
+                              (identifier)))))
+                      (identifier))))
+                (fstring_end)))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_content)
+                (fstring_interpolation
+                  (expression
+                    (identifier)))
+                (fstring_end)))))))))
+
+==================
+triple-quoted and implicit concatenation
+==================
+
+with entry {
+    a = f"""
+    Line {x}
+    """;
+    b = f"part one {p}, "
+        "part two";
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (fstring
+                (fstring_start)
+                (fstring_content)
+                (fstring_interpolation
+                  (expression
+                    (identifier)))
+                (fstring_content)
+                (fstring_end)))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (multistring
+                (fstring
+                  (fstring_start)
+                  (fstring_content)
+                  (fstring_interpolation
+                    (expression
+                      (identifier)))
+                  (fstring_content)
+                  (fstring_end))
+                (string)))))))))
+
+==================
+plain strings are unaffected
+==================
+
+with entry {
+    a = "plain";
+    b = r"\d+";
+    c = b"bytes";
+    d = {{1}};
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (string))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (string))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (string))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (set
+                (expression
+                  (set
+                    (expression
+                      (integer))))))))))))

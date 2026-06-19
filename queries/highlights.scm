@@ -68,6 +68,12 @@
 ; Decorators
 (decorator_list "@" @attribute)
 
+; f-strings (interpolations highlight as code via the rules above)
+[ (fstring_start) (fstring_content) (fstring_end) ] @string
+(fstring_format) @string.special
+(fstring_conversion) @character.special
+(fstring_interpolation [ "{" "}" ] @punctuation.special)
+
 ; JSX / view bodies
 (jsx_element name: (jsx_name) @tag)
 (jsx_attribute name: (jsx_name) @tag.attribute)

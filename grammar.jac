@@ -288,8 +288,10 @@ def build_tokens(g: Grammar) -> None {
     # (interpolation / context-sensitive lexing). v0.1 treats strings -- incl.
     # f/r/b-prefixed -- as opaque tokens; interpolated exprs are not yet split
     # out. Tracked as the external-scanner follow-up.
+    # Non-f strings only; f-strings (prefix containing f/F) are tokenized by the
+    # external scanner into start/content/interpolation/end (see `fstring`).
     rule(g, "string", tok(seq(
-        opt(pat("[rRbBfF]+")),
+        opt(pat("[rRbB]+")),
         choice(
             pat("\"\"\"([^\"]|\"[^\"]|\"\"[^\"])*\"\"\""),
             pat("'''([^']|'[^']|''[^'])*'''"),
@@ -462,9 +464,36 @@ def build_expr(g: Grammar) -> None {
         sym("dict"),
         sym("set"),
         sym("comprehension"),
-        sym("jsx_element")
+        sym("jsx_element"),
+        sym("fstring")
     ));
-    rule(g, "multistring", prec(2, seq(sym("string"), rep1(sym("string")))));
+    # Implicit concatenation of adjacent string literals, which may mix plain
+    # strings and f-strings (jac.spec multistring).
+    rule(g, "multistring", prec(2, seq(
+        choice(sym("string"), sym("fstring")),
+        rep1(choice(sym("string"), sym("fstring")))
+    )));
+
+    # f-strings: the start/content/end tokens come from the external scanner
+    # (src/scanner.c); the grammar parses the embedded `{ expression }`
+    # interpolations (with optional `!r`/`!s`/`!a` conversion and `:` format).
+    rule(g, "fstring", seq(
+        sym("fstring_start"),
+        rep(choice(sym("fstring_content"), sym("fstring_interpolation"))),
+        sym("fstring_end")
+    ));
+    rule(g, "fstring_interpolation", seq(
+        lit("{"),
+        field("expression", sym("expression")),
+        opt(sym("fstring_conversion")),
+        opt(sym("fstring_format")),
+        lit("}")
+    ));
+    rule(g, "fstring_conversion", tok(seq(lit("!"), choice(lit("r"), lit("s"), lit("a")))));
+    rule(g, "fstring_format", seq(
+        lit(":"),
+        rep(choice(sym("fstring_content"), sym("fstring_interpolation")))
+    ));
 
     rule(g, "parenthesized_expression", seq(
         lit("("), opt(comma_sep1(sym("expression"))), opt(lit(",")), lit(")")
@@ -1091,7 +1120,11 @@ with entry {
         ],
         # External tokens provided by src/scanner.c (hand-written C). Order MUST
         # match the TokenType enum in scanner.c.
-        "externals": [sym("pyinline").emit(), sym("jsx_text").emit()],
+        "externals": [
+            sym("pyinline").emit(), sym("jsx_text").emit(),
+            sym("fstring_start").emit(), sym("fstring_content").emit(),
+            sym("fstring_end").emit()
+        ],
         "inline": [],
         "supertypes": [],
         "rules": g.rules_json()

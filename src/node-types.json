@@ -301,6 +301,10 @@
             "named": true
           },
           {
+            "type": "fstring",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
           },
@@ -598,6 +602,10 @@
           },
           {
             "type": "float",
+            "named": true
+          },
+          {
+            "type": "fstring",
             "named": true
           },
           {
@@ -1381,6 +1389,10 @@
           "named": true
         },
         {
+          "type": "fstring",
+          "named": true
+        },
+        {
           "type": "identifier",
           "named": true
         },
@@ -1609,6 +1621,10 @@
             "named": true
           },
           {
+            "type": "fstring",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
           },
@@ -1731,6 +1747,10 @@
             "named": true
           },
           {
+            "type": "fstring",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
           },
@@ -1835,6 +1855,82 @@
         },
         {
           "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fstring",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "fstring_content",
+          "named": true
+        },
+        {
+          "type": "fstring_end",
+          "named": true
+        },
+        {
+          "type": "fstring_interpolation",
+          "named": true
+        },
+        {
+          "type": "fstring_start",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fstring_format",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "fstring_content",
+          "named": true
+        },
+        {
+          "type": "fstring_interpolation",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fstring_interpolation",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "fstring_conversion",
+          "named": true
+        },
+        {
+          "type": "fstring_format",
           "named": true
         }
       ]
@@ -2217,6 +2313,10 @@
             "named": true
           },
           {
+            "type": "fstring",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
           },
@@ -2417,6 +2517,10 @@
           },
           {
             "type": "float",
+            "named": true
+          },
+          {
+            "type": "fstring",
             "named": true
           },
           {
@@ -2770,6 +2874,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "fstring",
+          "named": true
+        },
         {
           "type": "string",
           "named": true
@@ -3955,6 +4063,22 @@
   {
     "type": "from",
     "named": false
+  },
+  {
+    "type": "fstring_content",
+    "named": true
+  },
+  {
+    "type": "fstring_conversion",
+    "named": true
+  },
+  {
+    "type": "fstring_end",
+    "named": true
+  },
+  {
+    "type": "fstring_start",
+    "named": true
   },
   {
     "type": "glob",

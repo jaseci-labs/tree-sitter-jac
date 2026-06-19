@@ -40,6 +40,18 @@
     {
       "type": "SYMBOL",
       "name": "jsx_text"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "fstring_start"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "fstring_content"
+    },
+    {
+      "type": "SYMBOL",
+      "name": "fstring_end"
     }
   ],
   "inline": [],
@@ -5919,6 +5931,10 @@
         {
           "type": "SYMBOL",
           "name": "jsx_element"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "fstring"
         }
       ]
     },
@@ -5929,18 +5945,164 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "SYMBOL",
-            "name": "string"
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "string"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "fstring"
+              }
+            ]
           },
           {
             "type": "REPEAT1",
             "content": {
-              "type": "SYMBOL",
-              "name": "string"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "string"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "fstring"
+                }
+              ]
             }
           }
         ]
       }
+    },
+    "fstring": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "fstring_start"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "fstring_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "fstring_interpolation"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "fstring_end"
+        }
+      ]
+    },
+    "fstring_interpolation": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "FIELD",
+          "name": "expression",
+          "content": {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "fstring_conversion"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "fstring_format"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
+    "fstring_conversion": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "!"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "r"
+              },
+              {
+                "type": "STRING",
+                "value": "s"
+              },
+              {
+                "type": "STRING",
+                "value": "a"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "fstring_format": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "fstring_content"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "fstring_interpolation"
+              }
+            ]
+          }
+        }
+      ]
     },
     "parenthesized_expression": {
       "type": "SEQ",
@@ -7786,7 +7948,7 @@
             "members": [
               {
                 "type": "PATTERN",
-                "value": "[rRbBfF]+"
+                "value": "[rRbB]+"
               },
               {
                 "type": "BLANK"
