@@ -209,3 +209,150 @@ edge Road { has dist: int; }
             (type_annotation
               (expression
                 (builtin_type)))))))))
+
+==================
+has field with property accessors
+==================
+
+obj Node {
+    has gen: Target { getter; setter(value: Target); }
+    has cached: int { getter { return self._c; } }
+}
+
+---
+
+(source_file
+  (element
+    (archetype
+      (identifier)
+      (archetype_member
+        (has_statement
+          (has_var
+            (identifier)
+            (type_annotation
+              (expression
+                (identifier)))
+            (accessor_block
+              (accessor
+                (identifier))
+              (accessor
+                (identifier)
+                (parameter_list
+                  (param
+                    (identifier)
+                    (type_annotation
+                      (expression
+                        (identifier))))))))))
+      (archetype_member
+        (has_statement
+          (has_var
+            (identifier)
+            (type_annotation
+              (expression
+                (builtin_type)))
+            (accessor_block
+              (accessor
+                (identifier)
+                (block_body
+                  (statement
+                    (return_statement
+                      (expression
+                        (attribute_expression
+                          (special_ref)
+                          (identifier))))))))))))))
+
+==================
+impl with event clause
+==================
+
+impl Greeter.greet with Root entry {
+    print("hello");
+}
+
+---
+
+(source_file
+  (element
+    (impl
+      (impl_target
+        (impl_target_name
+          (identifier))
+        (impl_target_name
+          (identifier)))
+      (event_clause
+        (expression
+          (identifier)))
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (call_expression
+                (identifier)
+                (argument_list
+                  (argument
+                    (expression
+                      (string))))))))))))
+
+==================
+for loop over or-default, tuple target
+==================
+
+with entry {
+    for base in node.bases or [] {
+        use(base);
+    }
+    for k, v in mapping.items() {
+        emit(k, v);
+    }
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (for_statement
+            (identifier)
+            (expression
+              (binary_expression
+                (expression
+                  (attribute_expression
+                    (identifier)
+                    (identifier)))
+                (expression
+                  (list))))
+            (block_body
+              (statement
+                (expression_statement
+                  (expression
+                    (call_expression
+                      (identifier)
+                      (argument_list
+                        (argument
+                          (expression
+                            (identifier)))))))))))
+        (statement
+          (for_statement
+            (identifier)
+            (identifier)
+            (expression
+              (call_expression
+                (attribute_expression
+                  (identifier)
+                  (identifier))
+                (argument_list)))
+            (block_body
+              (statement
+                (expression_statement
+                  (expression
+                    (call_expression
+                      (identifier)
+                      (argument_list
+                        (argument
+                          (expression
+                            (identifier)))
+                        (argument
+                          (expression
+                            (identifier)))))))))))))))

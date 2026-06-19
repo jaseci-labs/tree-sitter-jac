@@ -496,7 +496,13 @@ def build_expr(g: Grammar) -> None {
     ));
 
     rule(g, "parenthesized_expression", seq(
-        lit("("), opt(comma_sep1(sym("expression"))), opt(lit(",")), lit(")")
+        lit("("),
+        opt(choice(
+            # generator expression: `(x for x in xs if cond)`
+            seq(sym("expression"), sym("comprehension_clauses")),
+            seq(comma_sep1(sym("expression")), opt(lit(",")))
+        )),
+        lit(")")
     ));
 
     rule(g, "attribute_expression", precl(28, seq(
@@ -767,12 +773,16 @@ def build_stmts(g: Grammar) -> None {
     rule(g, "while_statement", seq(
         lit("while"), field("condition", sym("expression")), block(), opt(sym("else_clause"))
     ));
+    # The target is a primary-expression list, not a full expression, so the
+    # `in` separator isn't swallowed as a binary `in` comparison (which broke
+    # iterables like `node.bases or []`). Comma-separated for `for k, v in ...`.
     rule(g, "for_statement", seq(
         opt(lit("async")), lit("for"),
+        field("target", comma_sep1(sym("_primary_expression"))),
         choice(
-            seq(field("target", sym("expression")), lit("in"), field("iter", sym("expression"))),
-            seq(field("target", sym("expression")), lit("="), sym("expression"),
-                lit("to"), sym("expression"), lit("by"), sym("expression"))
+            seq(lit("in"), field("iter", sym("expression"))),
+            seq(lit("="), sym("expression"), lit("to"), sym("expression"),
+                lit("by"), sym("expression"))
         ),
         block(), opt(sym("else_clause"))
     ));
@@ -934,13 +944,27 @@ def build_decls(g: Grammar) -> None {
         lit("with"), sym("expression"), opt(choice(lit("entry"), lit("exit")))
     ));
 
-    rule(g, "has_statement", seq(
+    # prec.right so the optional trailing `;` is consumed here; an accessor-block
+    # `has` self-terminates (ends in `}`) so the `;` is optional, like other
+    # block-bodied constructs.
+    rule(g, "has_statement", precr(1, seq(
         opt(lit("static")), lit("has"), access_tag(),
-        comma_sep1(sym("has_var")), lit(";")
-    ));
-    rule(g, "has_var", seq(
+        comma_sep1(sym("has_var")), opt(lit(";"))
+    )));
+    # prec.right so a following `{` attaches as this field's accessor_block
+    # rather than reducing the has_var early.
+    rule(g, "has_var", precr(1, seq(
         field("name", name_ref()), lit(":"), field("type", sym("type_annotation")),
-        opt(choice(seq(lit("="), sym("expression")), seq(lit("by"), lit("postinit"))))
+        opt(choice(seq(lit("="), sym("expression")), seq(lit("by"), lit("postinit")))),
+        opt(sym("accessor_block"))
+    )));
+    # Property accessors on a `has` field: `{ getter; setter(value: T); }`.
+    rule(g, "accessor_block", seq(lit("{"), rep(sym("accessor")), lit("}")));
+    rule(g, "accessor", seq(
+        field("name", name_ref()),
+        opt(sym("parameter_list")),
+        opt(seq(lit("->"), field("return_type", sym("type_annotation")))),
+        choice(block(), lit(";"))
     ));
 
     rule(g, "enum", seq(
@@ -974,7 +998,7 @@ def build_decls(g: Grammar) -> None {
     rule(g, "impl", seq(
         decorators(), lit("impl"),
         field("target", sym("impl_target")),
-        opt(choice(seq(lit("with"), sym("expression")), sym("func_signature"))),
+        opt(choice(sym("event_clause"), sym("func_signature"))),
         choice(block(), seq(lit("by"), sym("expression"), lit(";")), lit(";"))
     ));
     rule(g, "impl_target", precl(1, seq(
@@ -1116,7 +1140,10 @@ with entry {
             # `{ for x in xs { <jsx> } }` view-body control flow vs a `for`
             # comprehension clause -- the `for ... in` prefix is shared until the
             # body shape (view block vs comprehension) decides it.
-            ["expression", "jsx_control"]
+            ["expression", "jsx_control"],
+            # for-statement target (a primary-expr list) vs an expression: the
+            # `for <t1, t2> in` target overlaps an expression list until `in`.
+            ["expression", "for_statement"]
         ],
         # External tokens provided by src/scanner.c (hand-written C). Order MUST
         # match the TokenType enum in scanner.c.

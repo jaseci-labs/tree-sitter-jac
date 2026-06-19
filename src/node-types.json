@@ -64,6 +64,65 @@
     }
   },
   {
+    "type": "accessor",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
+            "named": true
+          }
+        ]
+      },
+      "return_type": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "type_annotation",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "block_body",
+          "named": true
+        },
+        {
+          "type": "parameter_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "accessor_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "accessor",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "archetype",
     "named": true,
     "fields": {
@@ -1831,11 +1890,111 @@
         ]
       },
       "target": {
-        "multiple": false,
+        "multiple": true,
         "required": true,
         "types": [
           {
-            "type": "expression",
+            "type": ",",
+            "named": false
+          },
+          {
+            "type": "attribute_expression",
+            "named": true
+          },
+          {
+            "type": "await_expression",
+            "named": true
+          },
+          {
+            "type": "bool",
+            "named": true
+          },
+          {
+            "type": "builtin_type",
+            "named": true
+          },
+          {
+            "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "comprehension",
+            "named": true
+          },
+          {
+            "type": "dict",
+            "named": true
+          },
+          {
+            "type": "edge_reference",
+            "named": true
+          },
+          {
+            "type": "ellipsis",
+            "named": true
+          },
+          {
+            "type": "filter_expression",
+            "named": true
+          },
+          {
+            "type": "float",
+            "named": true
+          },
+          {
+            "type": "fstring",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "index_expression",
+            "named": true
+          },
+          {
+            "type": "integer",
+            "named": true
+          },
+          {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
+            "type": "kwesc_name",
+            "named": true
+          },
+          {
+            "type": "list",
+            "named": true
+          },
+          {
+            "type": "multistring",
+            "named": true
+          },
+          {
+            "type": "null",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "set",
+            "named": true
+          },
+          {
+            "type": "spawn_expression",
+            "named": true
+          },
+          {
+            "type": "special_ref",
+            "named": true
+          },
+          {
+            "type": "string",
             "named": true
           }
         ]
@@ -2060,9 +2219,13 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "accessor_block",
+          "named": true
+        },
         {
           "type": "expression",
           "named": true
@@ -2144,6 +2307,10 @@
         },
         {
           "type": "decorator_list",
+          "named": true
+        },
+        {
+          "type": "event_clause",
           "named": true
         },
         {
@@ -2973,6 +3140,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "comprehension_clauses",
+          "named": true
+        },
         {
           "type": "expression",
           "named": true
