@@ -125,8 +125,8 @@ This is possible because tree-sitter's real input contract is `grammar.json`;
 `grammar.js` is just the usual way to emit it. Authoring as an ordered OSP
 graph relies on Jac's guaranteed connection-order out-edges
 ([jaseci-labs/jaseci#6785](https://github.com/jaseci-labs/jaseci/issues/6785)),
-so `seq(A, B, C)` connects three child edges that read back in order. The
-nodes hold no logic; the `Emit` walker descends on `entry` and builds each
+so `(p ++> Seq())[0] ++> [A, B, C]` connects three child edges that read back in
+order. The nodes hold no logic; the `Emit` walker descends on `entry` and builds each
 node's serialized form on `exit` (post-order — children before parents), so the
 computation travels to the data graph. See [`grammar.jac`](grammar.jac).
 
