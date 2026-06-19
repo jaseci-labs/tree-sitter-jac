@@ -112,10 +112,10 @@ manifest. Editor-facing metadata lives in `tree-sitter.json`.
 
 The grammar is **authored in Jac itself**, using object-spatial programming
 (OSP). Instead of the conventional `grammar.js`, the grammar is built as an
-**ordered graph** — every tree-sitter rule construct is a `node`, structure is
-expressed with ordered child edges, and a node ability serializes the graph to
-`src/grammar.json`, which `tree-sitter generate` consumes to produce
-`src/parser.c`.
+**ordered graph** — every tree-sitter rule construct is a pure-data `node`,
+structure is expressed with ordered child edges, and an **`Emit` walker**
+traverses that graph to serialize it to `src/grammar.json`, which
+`tree-sitter generate` consumes to produce `src/parser.c`.
 
 ```
 grammar.jac  ──jac run──▶  src/grammar.json  ──tree-sitter generate──▶  src/parser.c
@@ -125,8 +125,10 @@ This is possible because tree-sitter's real input contract is `grammar.json`;
 `grammar.js` is just the usual way to emit it. Authoring as an ordered OSP
 graph relies on Jac's guaranteed connection-order out-edges
 ([jaseci-labs/jaseci#6785](https://github.com/jaseci-labs/jaseci/issues/6785)),
-so `seq(A, B, C)` connects three child edges that read back in order at emit
-time. See [`grammar.jac`](grammar.jac).
+so `seq(A, B, C)` connects three child edges that read back in order. The
+nodes hold no logic; the `Emit` walker descends on `entry` and builds each
+node's serialized form on `exit` (post-order — children before parents), so the
+computation travels to the data graph. See [`grammar.jac`](grammar.jac).
 
 ### Source of truth & drift detection
 

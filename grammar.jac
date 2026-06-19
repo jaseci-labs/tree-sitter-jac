@@ -1,15 +1,19 @@
 """Tree-sitter grammar for the Jac programming language, authored in Jac OSP.
 
 The grammar is built as an **object-spatial graph**: every tree-sitter rule
-construct is a `node`, structure is expressed with ordered child edges, and a
-node ability (`emit`) serializes the graph to `src/grammar.json`, which
-`tree-sitter generate` consumes to produce `src/parser.c`.
+construct is a pure-data `node`, structure is expressed with ordered child
+edges, and an `Emit` **walker** traverses the graph to serialize it to
+`src/grammar.json`, which `tree-sitter generate` consumes to produce
+`src/parser.c`.
 
 Why OSP fits: a tree-sitter grammar is an ordered, nested (and, via rule
 references, cyclic) structure -- exactly the shape object-spatial graphs model
 well, now that out-edge ordering is a guaranteed OSP semantic (connection
 order; jaseci-labs/jaseci#6785). `seq(A, B, C)` connects three child edges in
-order, and `[self -->]` reads them back in that same order at emit time.
+order, and `[here -->]` reads them back in that same order. Serialization is a
+genuine walker traversal: `Emit` descends on `entry` and builds each node's
+`out` on `exit` -- which fires only after all descendants, i.e. post-order --
+so the nodes stay pure data and the algorithm travels to the graph.
 
 Source of truth: the language's own EBNF, auto-extracted from the jaclang
 parser by `grammar_extract_pass` and published as `jaclang/jac.spec`. This file
@@ -31,102 +35,96 @@ import os;
 # fields. `emit` folds the subgraph rooted at the node into grammar.json.
 # ===========================================================================
 
-"""Base type for every grammar construct; `emit` returns its grammar.json."""
+# The node types are PURE DATA: structural children hang off ordered out-edges
+# (`++>`), scalar data lives in `has` fields, and the serialized grammar.json is
+# written onto `out` by the `Emit` walker (below). Keeping the algorithm out of
+# the nodes is what makes this object-spatial: a walker carries the computation
+# to the data graph, rather than each node serializing itself.
+
+"""Base type for every grammar construct; the `Emit` walker fills `out`."""
 node GNode {
-    def emit -> dict abs;
+    has out: dict = {};
 }
+
+# NOTE: the scalar fields below carry defaults only to satisfy dataclass field
+# ordering (the inherited `out` has a default); the builder DSL always supplies
+# them explicitly.
 
 """A literal string token (an anonymous terminal), e.g. "obj"."""
-node Lit(GNode) {
-    has value: str;
-    def emit -> dict { return {"type": "STRING", "value": self.value}; }
-}
+node Lit(GNode) { has value: str = ""; }
 
 """A regular-expression token."""
-node Pat(GNode) {
-    has value: str;
-    def emit -> dict { return {"type": "PATTERN", "value": self.value}; }
-}
+node Pat(GNode) { has value: str = ""; }
 
 """A reference to another rule by name (the $.<name> of grammar.js)."""
-node Sym(GNode) {
-    has name: str;
-    def emit -> dict { return {"type": "SYMBOL", "name": self.name}; }
-}
+node Sym(GNode) { has name: str = ""; }
 
 """The empty match."""
-node Blank(GNode) {
-    def emit -> dict { return {"type": "BLANK"}; }
-}
+node Blank(GNode) {}
 
 """Ordered sequence: A B C (children are the ordered members)."""
-node Seq(GNode) {
-    def emit -> dict {
-        members = [];
-        for k in [self -->] { members.append(k.emit()); }
-        return {"type": "SEQ", "members": members};
-    }
-}
+node Seq(GNode) {}
 
 """Alternatives: A | B | C (children are the ordered members)."""
-node Choice(GNode) {
-    def emit -> dict {
-        members = [];
-        for k in [self -->] { members.append(k.emit()); }
-        return {"type": "CHOICE", "members": members};
-    }
-}
+node Choice(GNode) {}
 
 """Zero or more: A* (one child)."""
-node Rep(GNode) {
-    def emit -> dict { return {"type": "REPEAT", "content": [self -->][0].emit()}; }
-}
+node Rep(GNode) {}
 
 """One or more: A+ (one child)."""
-node Rep1(GNode) {
-    def emit -> dict { return {"type": "REPEAT1", "content": [self -->][0].emit()}; }
-}
+node Rep1(GNode) {}
 
 """Lexer-level token: treat the contained subrule as a single terminal."""
-node Tok(GNode) {
-    def emit -> dict { return {"type": "TOKEN", "content": [self -->][0].emit()}; }
-}
+node Tok(GNode) {}
 
 """Token that must immediately follow the previous one (no extras between)."""
-node ITok(GNode) {
-    def emit -> dict {
-        return {"type": "IMMEDIATE_TOKEN", "content": [self -->][0].emit()};
-    }
-}
+node ITok(GNode) {}
 
 """Attach a field name to a child (for queries / tree navigation)."""
-node Field(GNode) {
-    has name: str;
-    def emit -> dict {
-        return {"type": "FIELD", "name": self.name, "content": [self -->][0].emit()};
-    }
-}
+node Field(GNode) { has name: str = ""; }
 
 """Rename a node in the output tree."""
-node Alias(GNode) {
-    has name: str, named: bool = True;
-    def emit -> dict {
-        return {
-            "type": "ALIAS",
-            "value": self.name,
-            "named": self.named,
-            "content": [self -->][0].emit()
-        };
+node Alias(GNode) { has name: str = "", named: bool = True; }
+
+"""Precedence wrapper. `kind` selects PREC / PREC_LEFT / PREC_RIGHT / PREC_DYNAMIC."""
+node Prec(GNode) { has kind: str = "", level: int = 0; }
+
+# ===========================================================================
+# Emit walker -- the serializer
+#
+# `Emit` folds a grammar subgraph into its grammar.json dict. It descends on
+# `entry` (`visit [-->]`, one ability that matches every GNode polymorphically)
+# and builds each node's `out` on `exit`. Because a node's `exit` fires only
+# after all of its descendants have exited, this is a post-order pass: when a
+# parent runs, its children's `out` are already populated, so it just folds
+# them in. `emit(n)` dispatches the walker and reads the result back.
+# ===========================================================================
+walker Emit {
+    can descend     with GNode  entry { visit [-->]; }
+
+    can emit_lit    with Lit    exit { here.out = {"type": "STRING", "value": here.value}; }
+    can emit_pat    with Pat    exit { here.out = {"type": "PATTERN", "value": here.value}; }
+    can emit_sym    with Sym    exit { here.out = {"type": "SYMBOL", "name": here.name}; }
+    can emit_blank  with Blank  exit { here.out = {"type": "BLANK"}; }
+    can emit_seq    with Seq    exit { here.out = {"type": "SEQ", "members": [k.out for k in [here -->]]}; }
+    can emit_choice with Choice exit { here.out = {"type": "CHOICE", "members": [k.out for k in [here -->]]}; }
+    can emit_rep    with Rep    exit { here.out = {"type": "REPEAT", "content": [here -->][0].out}; }
+    can emit_rep1   with Rep1   exit { here.out = {"type": "REPEAT1", "content": [here -->][0].out}; }
+    can emit_tok    with Tok    exit { here.out = {"type": "TOKEN", "content": [here -->][0].out}; }
+    can emit_itok   with ITok   exit { here.out = {"type": "IMMEDIATE_TOKEN", "content": [here -->][0].out}; }
+    can emit_field  with Field  exit {
+        here.out = {"type": "FIELD", "name": here.name, "content": [here -->][0].out};
+    }
+    can emit_alias  with Alias  exit {
+        here.out = {"type": "ALIAS", "value": here.name, "named": here.named, "content": [here -->][0].out};
+    }
+    can emit_prec   with Prec   exit {
+        here.out = {"type": here.kind, "value": here.level, "content": [here -->][0].out};
     }
 }
 
-"""Precedence wrapper. `kind` selects PREC / PREC_LEFT / PREC_RIGHT / PREC_DYNAMIC."""
-node Prec(GNode) {
-    has kind: str, level: int;
-    def emit -> dict {
-        return {"type": self.kind, "value": self.level, "content": [self -->][0].emit()};
-    }
-}
+"""Serialize a grammar subgraph to its grammar.json dict by walking it."""
+def emit(n: GNode) -> dict { n spawn Emit(); return n.out; }
 
 # ===========================================================================
 # Builder DSL
@@ -215,7 +213,7 @@ def comma_sep(r: GNode) -> GNode { return opt(comma_sep1(r)); }
 
 node Rule {
     has name: str;
-    def body_json -> dict { return [self -->][0].emit(); }
+    def body_json -> dict { return emit([self -->][0]); }
 }
 
 node Grammar {
@@ -1133,7 +1131,7 @@ with entry {
     out = {
         "name": g.name,
         "word": "identifier",
-        "extras": [pat("\\s").emit(), sym("comment").emit()],
+        "extras": [emit(pat("\\s")), emit(sym("comment"))],
         "conflicts": [
             ["param"],
             # Comprehension element vs. for-clause target: in `[<e> for <t> in ...]`
@@ -1159,9 +1157,9 @@ with entry {
         # External tokens provided by src/scanner.c (hand-written C). Order MUST
         # match the TokenType enum in scanner.c.
         "externals": [
-            sym("pyinline").emit(), sym("jsx_text").emit(),
-            sym("fstring_start").emit(), sym("fstring_content").emit(),
-            sym("fstring_end").emit()
+            emit(sym("pyinline")), emit(sym("jsx_text")),
+            emit(sym("fstring_start")), emit(sym("fstring_content")),
+            emit(sym("fstring_end"))
         ],
         "inline": [],
         "supertypes": [],
