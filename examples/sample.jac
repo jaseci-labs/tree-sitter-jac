@@ -65,3 +65,13 @@ with entry {
         case _: print(label);
     }
 }
+
+def render(items: list) -> any {
+    return
+        <div class="panel" style={{"pad": 8}}>
+            <Header onClose={handleClose}/>
+            <ul>{items}</ul>
+            <Footer.Bar {stats}/>
+            Total items shown above.
+        </div>;
+}

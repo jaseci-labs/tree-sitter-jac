@@ -6,7 +6,9 @@
 // grammar cannot express, because they require unbounded, context-sensitive
 // lexing:
 //
-//   * PYINLINE -- a `::py:: ... ::py::` inline-Python block (jac.spec PYNLINE).
+//   * PYINLINE  -- a `::py:: ... ::py::` inline-Python block (jac.spec PYNLINE).
+//   * JSX_TEXT  -- a run of raw character data between JSX tags, i.e. up to the
+//                  next `<`, `{` or `}` (which the context-free grammar handles).
 //
 // The TokenType enum order MUST match the `externals` array in grammar.jac.
 
@@ -16,6 +18,7 @@
 
 enum TokenType {
   PYINLINE,
+  JSX_TEXT,
 };
 
 // ---------------------------------------------------------------------------
@@ -78,9 +81,37 @@ static bool scan_pyinline(TSLexer *lexer) {
   return false;  // unterminated block
 }
 
+// JSX raw text: a run of characters between tags, terminated by `<` (a child
+// or closing tag), `{` (an embedded expression) or `}`. Leading layout
+// whitespace is skipped as extras so insignificant indentation between tags
+// doesn't become text nodes; a run that is only whitespace yields no token.
+static bool scan_jsx_text(TSLexer *lexer) {
+  while (iswspace(lexer->lookahead)) {
+    lexer->advance(lexer, true);
+  }
+  bool has_text = false;
+  while (!lexer->eof(lexer)) {
+    int32_t c = lexer->lookahead;
+    if (c == '<' || c == '{' || c == '}') {
+      break;
+    }
+    lexer->advance(lexer, false);
+    has_text = true;
+    lexer->mark_end(lexer);
+  }
+  if (has_text) {
+    lexer->result_symbol = JSX_TEXT;
+    return true;
+  }
+  return false;
+}
+
 bool tree_sitter_jac_external_scanner_scan(void *payload, TSLexer *lexer,
                                            const bool *valid_symbols) {
   (void)payload;
+  if (valid_symbols[JSX_TEXT] && scan_jsx_text(lexer)) {
+    return true;
+  }
   if (valid_symbols[PYINLINE]) {
     return scan_pyinline(lexer);
   }

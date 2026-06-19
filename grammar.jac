@@ -461,7 +461,8 @@ def build_expr(g: Grammar) -> None {
         sym("list"),
         sym("dict"),
         sym("set"),
-        sym("comprehension")
+        sym("comprehension"),
+        sym("jsx_element")
     ));
     rule(g, "multistring", prec(2, seq(sym("string"), rep1(sym("string")))));
 
@@ -558,6 +559,59 @@ def build_collections(g: Grammar) -> None {
 # ===========================================================================
 # Graph / object-spatial operators
 # ===========================================================================
+
+# ===========================================================================
+# JSX / view bodies (.cl.jac client UIs)
+# ===========================================================================
+#
+# A `jsx_element` is an atom, so the opening `<` is unambiguous: at an atom
+# position only JSX can start with `<`, whereas the binary `<` operator only
+# appears in infix position (a disjoint parser state). The only token the CFG
+# cannot express is the raw inter-tag text, supplied by the external scanner as
+# `jsx_text` (src/scanner.c).
+def build_jsx(g: Grammar) -> None {
+    rule(g, "jsx_element", seq(
+        lit("<"),
+        choice(
+            # fragment:  <> children </>
+            seq(lit(">"), rep(sym("jsx_child")), lit("<"), lit("/"), lit(">")),
+            # named element
+            seq(
+                field("name", sym("jsx_name")),
+                rep(sym("jsx_attribute")),
+                choice(
+                    seq(lit("/"), lit(">")),                                   # self-closing
+                    seq(lit(">"), rep(sym("jsx_child")),
+                        lit("<"), lit("/"), opt(sym("jsx_name")), lit(">"))    # open ... close
+                )
+            )
+        )
+    ));
+    # Tag / attribute name: identifier, dotted member (`Foo.Bar`), or hyphenated
+    # (`aria-label`); `@` is the raw-passthrough tag.
+    rule(g, "jsx_name", seq(
+        choice(sym("identifier"), lit("@")),
+        rep(seq(choice(lit("."), lit("-")), sym("identifier")))
+    ));
+    rule(g, "jsx_attribute", choice(
+        seq(
+            field("name", sym("jsx_name")),
+            opt(seq(lit("="), field("value", choice(
+                sym("string"),
+                seq(lit("{"), sym("expression"), lit("}"))
+            ))))
+        ),
+        # shorthand / spread:  {expr} (a `**expr` spread parses as a prefix
+        # unary expression, so no special prefix is needed here).
+        seq(lit("{"), sym("expression"), lit("}"))
+    ));
+    rule(g, "jsx_child", choice(
+        sym("jsx_text"),
+        sym("jsx_element"),
+        sym("jsx_expression")
+    ));
+    rule(g, "jsx_expression", seq(lit("{"), opt(sym("expression")), lit("}")));
+}
 
 def build_edges(g: Grammar) -> None {
     rule(g, "connect_expression", precl(20, seq(
@@ -985,6 +1039,7 @@ def build -> Grammar {
     build_expr(g);
     build_collections(g);
     build_edges(g);
+    build_jsx(g);
     build_tokens(g);
     return g;
 }
@@ -1000,11 +1055,15 @@ with entry {
             # Comprehension element vs. for-clause target: in `[<e> for <t> in ...]`
             # both `<e>` and the comma-separated `<t>` are expression-like, so
             # GLR must keep both interpretations until the `for`/`in` resolves it.
-            ["expression", "for_in_clause"]
+            ["expression", "for_in_clause"],
+            # `<Foo.Bar>` (JSX member-tag name) vs `x < Foo.Bar` (less-than on a
+            # dotted name): the dotted continuation is ambiguous, so GLR keeps
+            # both the jsx_name and name_ref reads alive.
+            ["jsx_name", "_name_ref"]
         ],
         # External tokens provided by src/scanner.c (hand-written C). Order MUST
         # match the TokenType enum in scanner.c.
-        "externals": [sym("pyinline").emit()],
+        "externals": [sym("pyinline").emit(), sym("jsx_text").emit()],
         "inline": [],
         "supertypes": [],
         "rules": g.rules_json()

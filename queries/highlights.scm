@@ -68,6 +68,11 @@
 ; Decorators
 (decorator_list "@" @attribute)
 
+; JSX / view bodies
+(jsx_element name: (jsx_name) @tag)
+(jsx_attribute name: (jsx_name) @tag.attribute)
+(jsx_text) @text
+
 ; Punctuation
 [ "(" ")" "[" "]" "{" "}" ] @punctuation.bracket
 [ "," ";" ":" "." "->" ] @punctuation.delimiter

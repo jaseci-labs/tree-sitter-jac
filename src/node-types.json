@@ -313,6 +313,10 @@
             "named": true
           },
           {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
             "type": "kwesc_name",
             "named": true
           },
@@ -606,6 +610,10 @@
           },
           {
             "type": "integer",
+            "named": true
+          },
+          {
+            "type": "jsx_element",
             "named": true
           },
           {
@@ -1385,6 +1393,10 @@
           "named": true
         },
         {
+          "type": "jsx_element",
+          "named": true
+        },
+        {
           "type": "kwesc_name",
           "named": true
         },
@@ -1609,6 +1621,10 @@
             "named": true
           },
           {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
             "type": "kwesc_name",
             "named": true
           },
@@ -1724,6 +1740,10 @@
           },
           {
             "type": "integer",
+            "named": true
+          },
+          {
+            "type": "jsx_element",
             "named": true
           },
           {
@@ -2209,6 +2229,10 @@
             "named": true
           },
           {
+            "type": "jsx_element",
+            "named": true
+          },
+          {
             "type": "kwesc_name",
             "named": true
           },
@@ -2253,6 +2277,141 @@
       "types": [
         {
           "type": "slice",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "jsx_attribute",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "jsx_name",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          },
+          {
+            "type": "string",
+            "named": true
+          },
+          {
+            "type": "{",
+            "named": false
+          },
+          {
+            "type": "}",
+            "named": false
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "jsx_child",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "jsx_element",
+          "named": true
+        },
+        {
+          "type": "jsx_expression",
+          "named": true
+        },
+        {
+          "type": "jsx_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "jsx_element",
+    "named": true,
+    "fields": {
+      "name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "jsx_name",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "jsx_attribute",
+          "named": true
+        },
+        {
+          "type": "jsx_child",
+          "named": true
+        },
+        {
+          "type": "jsx_name",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "jsx_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "jsx_name",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "identifier",
           "named": true
         }
       ]
@@ -3703,6 +3862,10 @@
   {
     "type": "is",
     "named": false
+  },
+  {
+    "type": "jsx_text",
+    "named": true
   },
   {
     "type": "kwesc_name",

@@ -1,0 +1,202 @@
+==================
+simple element with text
+==================
+
+def r -> any {
+    return <div class="app">Hello</div>;
+}
+
+---
+
+(source_file
+  (element
+    (ability
+      (identifier)
+      (func_signature
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (jsx_element
+                (jsx_name
+                  (identifier))
+                (jsx_attribute
+                  (jsx_name
+                    (identifier))
+                  (string))
+                (jsx_child
+                  (jsx_text))
+                (jsx_name
+                  (identifier))))))))))
+
+==================
+self-closing, attributes, expression value
+==================
+
+def r -> any {
+    return <Header title="Home" onClose={handleClose}/>;
+}
+
+---
+
+(source_file
+  (element
+    (ability
+      (identifier)
+      (func_signature
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (jsx_element
+                (jsx_name
+                  (identifier))
+                (jsx_attribute
+                  (jsx_name
+                    (identifier))
+                  (string))
+                (jsx_attribute
+                  (jsx_name
+                    (identifier))
+                  (expression
+                    (identifier)))))))))))
+
+==================
+nested elements, expression child, member tag
+==================
+
+def r -> any {
+    return <div class="c">
+        <ul>{items}</ul>
+        <Footer.Bar {stats}/>
+        plain text
+    </div>;
+}
+
+---
+
+(source_file
+  (element
+    (ability
+      (identifier)
+      (func_signature
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (jsx_element
+                (jsx_name
+                  (identifier))
+                (jsx_attribute
+                  (jsx_name
+                    (identifier))
+                  (string))
+                (jsx_child
+                  (jsx_element
+                    (jsx_name
+                      (identifier))
+                    (jsx_child
+                      (jsx_expression
+                        (expression
+                          (identifier))))
+                    (jsx_name
+                      (identifier))))
+                (jsx_child
+                  (jsx_element
+                    (jsx_name
+                      (identifier)
+                      (identifier))
+                    (jsx_attribute
+                      (expression
+                        (identifier)))))
+                (jsx_child
+                  (jsx_text))
+                (jsx_name
+                  (identifier))))))))))
+
+==================
+fragment
+==================
+
+def r -> any {
+    return <><A/><B/></>;
+}
+
+---
+
+(source_file
+  (element
+    (ability
+      (identifier)
+      (func_signature
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (jsx_element
+                (jsx_child
+                  (jsx_element
+                    (jsx_name
+                      (identifier))))
+                (jsx_child
+                  (jsx_element
+                    (jsx_name
+                      (identifier))))))))))))
+
+==================
+less-than is still an operator (not JSX)
+==================
+
+with entry {
+    flag = a < b and c > d;
+    xs: list[int] = [];
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (binary_expression
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (identifier))))
+                (expression
+                  (binary_expression
+                    (expression
+                      (identifier))
+                    (expression
+                      (identifier))))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (index_expression
+                (builtin_type)
+                (slice
+                  (expression
+                    (builtin_type)))))
+            (expression
+              (list))))))))
