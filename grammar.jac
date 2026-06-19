@@ -601,16 +601,24 @@ def build_jsx(g: Grammar) -> None {
                 seq(lit("{"), sym("expression"), lit("}"))
             ))))
         ),
-        # shorthand / spread:  {expr} (a `**expr` spread parses as a prefix
-        # unary expression, so no special prefix is needed here).
-        seq(lit("{"), sym("expression"), lit("}"))
+        # shorthand / spread:  {expr} | {...expr} | {**expr}. The `**expr` form
+        # parses as a prefix unary expression; `...` (rest/spread) is an
+        # explicit optional prefix.
+        seq(lit("{"), opt(lit("...")), sym("expression"), lit("}"))
     ));
     rule(g, "jsx_child", choice(
         sym("jsx_text"),
         sym("jsx_element"),
         sym("jsx_expression")
     ));
-    rule(g, "jsx_expression", seq(lit("{"), opt(sym("expression")), lit("}")));
+    # An embedded `{...}` in JSX children: either a value interpolation
+    # (`{count}`) or a control-flow block (`{ if cond { <jsx> } }`), per the
+    # jac.spec jsx_child production.
+    rule(g, "jsx_expression", seq(
+        lit("{"),
+        choice(rep1(sym("statement")), opt(sym("expression"))),
+        lit("}")
+    ));
 }
 
 def build_edges(g: Grammar) -> None {
@@ -1059,7 +1067,11 @@ with entry {
             # `<Foo.Bar>` (JSX member-tag name) vs `x < Foo.Bar` (less-than on a
             # dotted name): the dotted continuation is ambiguous, so GLR keeps
             # both the jsx_name and name_ref reads alive.
-            ["jsx_name", "_name_ref"]
+            ["jsx_name", "_name_ref"],
+            # `{...expr}` JSX spread vs the `...` ellipsis atom starting an
+            # expression -- only the spread is valid for `{...props}`, GLR drops
+            # the other.
+            ["jsx_attribute", "ellipsis"]
         ],
         # External tokens provided by src/scanner.c (hand-written C). Order MUST
         # match the TokenType enum in scanner.c.

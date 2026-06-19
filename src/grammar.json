@@ -22,6 +22,10 @@
     [
       "jsx_name",
       "_name_ref"
+    ],
+    [
+      "jsx_attribute",
+      "ellipsis"
     ]
   ],
   "externals": [
@@ -7449,6 +7453,18 @@
               "value": "{"
             },
             {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "..."
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            },
+            {
               "type": "SYMBOL",
               "name": "expression"
             },
@@ -7488,11 +7504,23 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "expression"
+              "type": "REPEAT1",
+              "content": {
+                "type": "SYMBOL",
+                "name": "statement"
+              }
             },
             {
-              "type": "BLANK"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "expression"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
             }
           ]
         },
