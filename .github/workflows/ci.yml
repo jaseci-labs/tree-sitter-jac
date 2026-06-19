@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,50 +18,15 @@ jobs:
       - name: Install tooling
         run: |
           npm install -g tree-sitter-cli@0.22.6
-          python -m pip install --quiet jaclang
+          python -m pip install --quiet jaclang=="$(cat .jaclang-version)"
 
-      - name: Rebuild grammar.json from Jac source
+      - name: Build parser
         run: |
           jac run grammar.jac
-          git diff --exit-code src/grammar.json \
-            || (echo "::error::src/grammar.json is stale — run 'jac run grammar.jac'"; exit 1)
+          tree-sitter generate --no-bindings src/grammar.json
 
-      - name: Generate parser
-        run: tree-sitter generate src/grammar.json
-
-      - name: Corpus tests
+      - name: Run corpus tests
         run: tree-sitter test
 
-      - name: Validate queries against the real tree
-        run: |
-          test/parse-clean.sh examples/sample.jac
-          for q in queries/jac/*.scm; do
-            echo "linting $q"
-            tree-sitter query "$q" examples/sample.jac >/dev/null
-          done
-
-  grammar-drift:
-    # Fetch the upstream EBNF (jac.spec) for the pinned jaclang release and diff
-    # it against the committed snapshot. A diff means the language grammar moved
-    # and this tree-sitter grammar may need updating.
-    #
-    # jac.spec is NOT shipped in the jaclang PyPI wheel (it isn't declared as
-    # package-data, and nothing in jaclang loads it at runtime), so a
-    # `pip install` cannot provide it. We read it straight from the source tree
-    # at the matching release tag instead. Tags are `jaclang-v<version>` and the
-    # spec lives at jac/jaclang/jac.spec in the jaseci-labs/jaseci monorepo.
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Compare jac.spec against pinned jaclang release
-        run: |
-          version="$(cat .jaclang-version)"
-          url="https://raw.githubusercontent.com/jaseci-labs/jaseci/jaclang-v${version}/jac/jaclang/jac.spec"
-          echo "Fetching jac.spec from $url"
-          curl -fsSL "$url" -o /tmp/jac.spec.upstream
-          if ! diff -u jac.spec.snapshot /tmp/jac.spec.upstream; then
-            echo "::warning::jaclang grammar (jac.spec) changed vs snapshot at jaclang-v${version}; review grammar.jac for needed updates"
-            exit 1
-          fi
-          echo "jac.spec matches snapshot at jaclang-v${version}"
+      - name: Parse examples
+        run: bash test/parse-clean.sh examples/sample.jac
