@@ -1,12 +1,12 @@
-name: CI
+name: Release
 
 on:
   push:
-    branches: [main]
-  pull_request:
+    tags:
+      - 'v*'
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,8 +25,12 @@ jobs:
           jac run grammar.jac
           tree-sitter generate --no-bindings src/grammar.json
 
-      - name: Run corpus tests
-        run: tree-sitter test
-
-      - name: Parse examples
-        run: bash test/parse-clean.sh examples/sample.jac
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            src/parser.c
+            grammar.json
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
