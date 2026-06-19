@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install tooling
+        run: |
+          npm install -g tree-sitter-cli@0.22.6
+          python -m pip install --quiet jaclang=="$(cat .jaclang-version)"
+
+      - name: Build parser
+        run: |
+          jac run grammar.jac
+          tree-sitter generate --no-bindings src/grammar.json
+
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            src/parser.c
+            grammar.json
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
