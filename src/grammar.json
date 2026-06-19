@@ -7259,6 +7259,19 @@
               "value": ":<+"
             }
           ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "del"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "edge_op"
+            }
+          ]
         }
       ]
     },

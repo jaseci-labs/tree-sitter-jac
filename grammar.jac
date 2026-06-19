@@ -681,7 +681,9 @@ def build_edges(g: Grammar) -> None {
     rule(g, "connect_op", choice(
         lit("++>"), lit("<++"), lit("<++>"),
         seq(lit("+>:"), sym("expression"), opt(seq(lit(":"), sym("expression"))), lit(":+>")),
-        seq(lit("<+:"), sym("expression"), opt(seq(lit(":"), sym("expression"))), lit(":<+"))
+        seq(lit("<+:"), sym("expression"), opt(seq(lit(":"), sym("expression"))), lit(":<+")),
+        # disconnect: `a del --> b` (jac.spec connect_op `"del" edge_op_ref`).
+        seq(lit("del"), sym("edge_op"))
     ));
     rule(g, "edge_reference", seq(
         lit("["),
