@@ -611,14 +611,26 @@ def build_jsx(g: Grammar) -> None {
         sym("jsx_element"),
         sym("jsx_expression")
     ));
-    # An embedded `{...}` in JSX children: either a value interpolation
-    # (`{count}`) or a control-flow block (`{ if cond { <jsx> } }`), per the
-    # jac.spec jsx_child production.
+    # An embedded `{...}` in JSX children: a control-flow view block
+    # (`{ if cond { <jsx> } }`), a statement interpolation (`{ x; }`), or a
+    # value interpolation (`{count}`), per the jac.spec jsx_child production.
     rule(g, "jsx_expression", seq(
         lit("{"),
-        choice(rep1(sym("statement")), opt(sym("expression"))),
+        choice(sym("jsx_control"), opt(sym("expression"))),
         lit("}")
     ));
+    # Conditional / iterative rendering. Unlike ordinary statements, the bodies
+    # are JSX view blocks: bare jsx_children (elements/text/`{expr}`), no `;`.
+    rule(g, "jsx_control", choice(
+        seq(lit("if"), field("condition", sym("expression")), sym("jsx_view_block"),
+            rep(seq(lit("elif"), sym("expression"), sym("jsx_view_block"))),
+            opt(seq(lit("else"), sym("jsx_view_block")))),
+        seq(opt(lit("async")), lit("for"),
+            field("left", comma_sep1(sym("_primary_expression"))), lit("in"),
+            field("right", sym("expression")), sym("jsx_view_block")),
+        seq(lit("while"), field("condition", sym("expression")), sym("jsx_view_block"))
+    ));
+    rule(g, "jsx_view_block", seq(lit("{"), rep(sym("jsx_child")), lit("}")));
 }
 
 def build_edges(g: Grammar) -> None {
@@ -1071,7 +1083,11 @@ with entry {
             # `{...expr}` JSX spread vs the `...` ellipsis atom starting an
             # expression -- only the spread is valid for `{...props}`, GLR drops
             # the other.
-            ["jsx_attribute", "ellipsis"]
+            ["jsx_attribute", "ellipsis"],
+            # `{ for x in xs { <jsx> } }` view-body control flow vs a `for`
+            # comprehension clause -- the `for ... in` prefix is shared until the
+            # body shape (view block vs comprehension) decides it.
+            ["expression", "jsx_control"]
         ],
         # External tokens provided by src/scanner.c (hand-written C). Order MUST
         # match the TokenType enum in scanner.c.

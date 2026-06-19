@@ -200,3 +200,122 @@ with entry {
                     (builtin_type)))))
             (expression
               (list))))))))
+
+==================
+spread attribute
+==================
+
+def r -> any {
+    return <Comp a="1" {...rest} b={x}/>;
+}
+
+---
+
+(source_file
+  (element
+    (ability
+      (identifier)
+      (func_signature
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (jsx_element
+                (jsx_name
+                  (identifier))
+                (jsx_attribute
+                  (jsx_name
+                    (identifier))
+                  (string))
+                (jsx_attribute
+                  (expression
+                    (identifier)))
+                (jsx_attribute
+                  (jsx_name
+                    (identifier))
+                  (expression
+                    (identifier)))))))))))
+
+==================
+view-body control flow (if/else, for)
+==================
+
+def r -> any {
+    return <div>
+        {if n > 0 { <span>some</span> } else { <em>none</em> }}
+        <ul>{for x in xs { <li>{x}</li> }}</ul>
+    </div>;
+}
+
+---
+
+(source_file
+  (element
+    (ability
+      (identifier)
+      (func_signature
+        (type_annotation
+          (expression
+            (builtin_type))))
+      (block_body
+        (statement
+          (return_statement
+            (expression
+              (jsx_element
+                (jsx_name
+                  (identifier))
+                (jsx_child
+                  (jsx_expression
+                    (jsx_control
+                      (expression
+                        (binary_expression
+                          (expression
+                            (identifier))
+                          (expression
+                            (integer))))
+                      (jsx_view_block
+                        (jsx_child
+                          (jsx_element
+                            (jsx_name
+                              (identifier))
+                            (jsx_child
+                              (jsx_text))
+                            (jsx_name
+                              (identifier)))))
+                      (jsx_view_block
+                        (jsx_child
+                          (jsx_element
+                            (jsx_name
+                              (identifier))
+                            (jsx_child
+                              (jsx_text))
+                            (jsx_name
+                              (identifier))))))))
+                (jsx_child
+                  (jsx_element
+                    (jsx_name
+                      (identifier))
+                    (jsx_child
+                      (jsx_expression
+                        (jsx_control
+                          (identifier)
+                          (expression
+                            (identifier))
+                          (jsx_view_block
+                            (jsx_child
+                              (jsx_element
+                                (jsx_name
+                                  (identifier))
+                                (jsx_child
+                                  (jsx_expression
+                                    (expression
+                                      (identifier))))
+                                (jsx_name
+                                  (identifier))))))))
+                    (jsx_name
+                      (identifier))))
+                (jsx_name
+                  (identifier))))))))))
