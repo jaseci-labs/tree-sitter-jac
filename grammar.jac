@@ -218,11 +218,7 @@ node Rule {
 
 node Grammar {
     has name: str;
-    def rules_json -> dict {
-        rules = {};
-        for r in [self -->] { rules[r.name] = r.body_json(); }
-        return rules;
-    }
+    def rules_json -> dict { return {r.name: r.body_json() for r in [self -->]}; }
 }
 
 """Spawn a named rule whose body is `body`."""
@@ -305,17 +301,15 @@ def build_tokens(g: Grammar) -> None {
     # body is arbitrary Python that the context-free grammar can't delimit, so
     # it is provided by the external scanner (src/scanner.c) and declared in
     # `externals` below -- no rule here.
-    bt = [];
-    for t in [
+    bt = [lit(t) for t in [
         "str", "int", "float", "list", "tuple", "set", "dict", "bool", "bytes",
         "any", "type", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
         "f32", "f64"
-    ] { bt.append(lit(t)); }
+    ]];
     rule(g, "builtin_type", choice(*bt));
-    sr = [];
-    for s in [
+    sr = [lit(s) for s in [
         "self", "super", "here", "root", "visitor", "props", "init", "postinit"
-    ] { sr.append(lit(s)); }
+    ]];
     rule(g, "special_ref", choice(*sr));
 }
 
@@ -391,8 +385,7 @@ def build_expr(g: Grammar) -> None {
     # appears as dict-spread (`{**x}`), call kwargs (`f(**x)`), or a `**param`,
     # each handled by its own rule. Treating it as a unary made `{**x}` match a
     # set element, so `{**base, "k": v}` mis-parsed as a set and broke at `:`.
-    uops = [];
-    for u in ["not", "~", "-", "+", "*", "&", "|>", ":>"] { uops.append(lit(u)); }
+    uops = [lit(u) for u in ["not", "~", "-", "+", "*", "&", "|>", ":>"]];
     rule(g, "unary_expression", precr(19, seq(
         field("operator", choice(*uops)),
         field("operand", sym("expression"))
@@ -748,9 +741,8 @@ def build_stmts(g: Grammar) -> None {
     # Parsing the leading expression once, then an OPTIONAL assignment tail,
     # avoids a GLR conflict over the whole expression grammar (which exploded
     # the parse table). The next token (`=`/`:`/augop vs `;`) decides the tail.
-    augops = [];
-    for a in ["+=", "-=", "*=", "/=", "//=", "%=", "**=", "@=", "&=", "|=",
-              "^=", "<<=", ">>="] { augops.append(lit(a)); }
+    augops = [lit(a) for a in ["+=", "-=", "*=", "/=", "//=", "%=", "**=", "@=",
+              "&=", "|=", "^=", "<<=", ">>="]];
     rule(g, "expression_statement", seq(
         field("left", sym("expression")),
         opt(choice(
@@ -1167,9 +1159,8 @@ with entry {
     };
     here = os.path.dirname(os.path.abspath(__file__));
     dest = os.path.join(here, "src", "grammar.json");
-    f = open(dest, "w");
-    f.write(json.dumps(out, indent=2));
-    f.write("\n");
-    f.close();
+    with open(dest, "w") as f {
+        f.write(json.dumps(out, indent=2) + "\n");
+    }
     print(f"wrote {dest}");
 }
