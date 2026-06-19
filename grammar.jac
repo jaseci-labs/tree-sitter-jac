@@ -301,7 +301,10 @@ def build_tokens(g: Grammar) -> None {
     rule(g, "null", lit("None"));
     rule(g, "ellipsis", lit("..."));
     rule(g, "comment", tok(pat("#.*")));
-    rule(g, "pyinline", tok(pat("::py::")));
+    # `pyinline` (jac.spec PYNLINE) is a whole `::py:: ... ::py::` block. Its
+    # body is arbitrary Python that the context-free grammar can't delimit, so
+    # it is provided by the external scanner (src/scanner.c) and declared in
+    # `externals` below -- no rule here.
     bt = [];
     for t in [
         "str", "int", "float", "list", "tuple", "set", "dict", "bool", "bytes",
@@ -621,6 +624,7 @@ def build_stmts(g: Grammar) -> None {
         sym("has_statement"),
         sym("ability"),
         sym("archetype"),
+        sym("pyinline"),
         sym("expression_statement"),
         sym("empty_statement")
     ));
@@ -998,7 +1002,9 @@ with entry {
             # GLR must keep both interpretations until the `for`/`in` resolves it.
             ["expression", "for_in_clause"]
         ],
-        "externals": [],
+        # External tokens provided by src/scanner.c (hand-written C). Order MUST
+        # match the TokenType enum in scanner.c.
+        "externals": [sym("pyinline").emit()],
         "inline": [],
         "supertypes": [],
         "rules": g.rules_json()

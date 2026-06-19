@@ -2830,6 +2830,10 @@
           "named": true
         },
         {
+          "type": "pyinline",
+          "named": true
+        },
+        {
           "type": "raise_statement",
           "named": true
         },

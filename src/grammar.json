@@ -20,7 +20,12 @@
       "for_in_clause"
     ]
   ],
-  "externals": [],
+  "externals": [
+    {
+      "type": "SYMBOL",
+      "name": "pyinline"
+    }
+  ],
   "inline": [],
   "supertypes": [],
   "rules": {
@@ -2515,6 +2520,10 @@
         {
           "type": "SYMBOL",
           "name": "archetype"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "pyinline"
         },
         {
           "type": "SYMBOL",
@@ -7332,13 +7341,6 @@
       "content": {
         "type": "PATTERN",
         "value": "#.*"
-      }
-    },
-    "pyinline": {
-      "type": "TOKEN",
-      "content": {
-        "type": "PATTERN",
-        "value": "::py::"
       }
     },
     "builtin_type": {
