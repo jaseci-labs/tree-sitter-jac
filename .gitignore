@@ -32,4 +32,5 @@ __jac_gen__/
 /go.mod
 /package-lock.json
 /package.json
-/tree-sitter.json
+# NOTE: tree-sitter.json is NOT ignored -- it is the hand-authored grammar
+# manifest used by editor ecosystems (Helix/Zed/tree-sitter CLI).

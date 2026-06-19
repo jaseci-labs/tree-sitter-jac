@@ -29,9 +29,10 @@ time. See [`grammar.jac`](grammar.jac).
 
 The Jac grammar's authoritative EBNF is auto-extracted from the jaclang parser
 by `grammar_extract_pass` and published as `jaclang/jac.spec`. This tree-sitter
-grammar is a hand-tuned translation of that spec. CI regenerates `jac.spec`
-from a pinned jaclang and diffs it against a committed snapshot, so any drift in
-the upstream language grammar surfaces as a failing check.
+grammar is a hand-tuned translation of that spec. CI fetches `jac.spec` from the
+pinned jaclang release tag (`.jaclang-version`) and diffs it against the
+committed `jac.spec.snapshot`, so any drift in the upstream language grammar
+surfaces as a failing check.
 
 ## Building
 
@@ -44,34 +45,43 @@ tree-sitter generate src/grammar.json      # -> src/parser.c
 tree-sitter test                           # run corpus tests
 ```
 
-The committed `src/parser.c` is what editors compile, so **consumers need no
-build step** — only contributors regenerating the grammar do. This is a Jac
-project (`jac.toml`); there is intentionally no `package.json`/npm manifest
-(nvim-treesitter consumes `src/parser.c` + `queries/` directly).
+The committed `src/parser.c` and `src/scanner.c` are what editors compile, so
+**consumers need no build step** — only contributors regenerating the grammar
+do. This is a Jac project (`jac.toml`); there is intentionally no
+`package.json`/npm manifest. Editors consume `src/parser.c` + `src/scanner.c` +
+`queries/`, with grammar metadata in `tree-sitter.json`.
 
 ## Status
 
-**v0.1 — generates cleanly and parses core Jac.** The parser builds without
-errors (~13 MB `parser.c`); simple, idiomatic files parse with zero or few
-error nodes (e.g. the chess example: 0 errors; littleX `main.jac`: a handful).
+**Parses real-world Jac.** Across the full jaclang corpus (~3,100 `.jac` files)
+**~91% parse with zero error nodes** — and since a large share of the remainder
+are jaclang's own negative-test fixtures (files written to *fail* compilation),
+the pass rate on valid Jac is **~97%**. Track it with
+`jac run scripts/error-density.jac <corpus-dir> [--sample N] [--triage]`.
 
-Covered: declarations (obj/node/edge/walker/class, abilities with access tags,
-has, enum, impl, glob, test, type, sem), statements (if/elif/else, while, for
-in / for-to-by, try/except/finally, with, match, switch, return/yield/raise/
-assert/del/visit/report/disengage/global/nonlocal), the full expression
-precedence ladder, collections & comprehensions, imports (dotted, relative,
-and string-path/JS-interop), and the graph/edge operators.
+Covered: declarations (obj/node/edge/walker/class with access tags & bases,
+abilities with event clauses, has + property accessors, enum + bases, impl,
+glob, test, type, sem), statements (if/elif/else, while, for-in / for-to-by,
+try/except/finally, with, match, switch, return/yield/raise/assert/del/visit/
+report/disengage/global/nonlocal), the full expression precedence ladder
+including atomic & concurrent (`flow`/`wait`) expressions, collections &
+comprehensions (incl. generators), imports (dotted, relative, string-path/JS),
+graph/edge & disconnect operators, and object-spatial filter comprehensions.
 
-**Known gaps (tracked follow-ups), in rough priority order:**
-- **f-strings** — interpolation isn't split out; `f"..."` is lexed as an opaque
-  string. Needs a C external scanner.
-- **JSX / view bodies** (`.cl.jac` frontend files) — not yet modelled; needs a
-  C external scanner for JSX text/tag tokenization. These files dominate the
-  remaining parse errors in the example corpus.
-- **Typed lambdas** (`lambda x: T : expr`) and some **complex edge-reference
-  filters** (`[self<-:Follow:<-[?:Profile]]`).
-- **Cast `x as T`** — `as` is currently reserved for except/with/import
-  bindings to avoid pervasive grammar conflicts.
+An **external scanner** ([`src/scanner.c`](src/scanner.c)) supplies the
+context-sensitive tokens the grammar can't express:
+
+- **f-strings** — `f"...{expr}..."` is split into text + parsed interpolations
+  (with format specs, conversions, escapes, triple/raw quotes, and nesting).
+- **JSX / view bodies** (`.cl.jac`) — elements, attributes/spread, fragments,
+  `{expr}` children, and `{ if/for { <jsx> } }` view-body control flow.
+- **`::py::`** inline-Python blocks.
+
+**Known gaps (small, tracked follow-ups):**
+- **Cast `x as T`** — `as` is reserved for except/with/import bindings to avoid
+  pervasive grammar conflicts; bare casts are deferred.
+- A few reserved words used as identifiers (e.g. `override = ...`) and some
+  `.na` native-only constructs.
 
 ### Engineering note (parse-table size)
 
@@ -83,10 +93,20 @@ therefore emitted as **shared named rules**, not inlined. Regenerate with a
 memory cap during development (`ulimit -v` + `timeout`) so a structural mistake
 fails fast instead of exhausting host memory.
 
-## Neovim
+## Editor integration
 
-See [`docs/nvim.md`](docs/nvim.md) for filetype detection, parser registration
-with `nvim-treesitter`, and query installation.
+The grammar manifest is [`tree-sitter.json`](tree-sitter.json) and the queries
+(highlights / locals / folds / injections / indents / textobjects) are in
+[`queries/`](queries).
+
+- **Neovim** — [`docs/nvim.md`](docs/nvim.md). This repo doubles as a Neovim
+  plugin (it ships [`ftdetect/`](ftdetect/jac.lua) and
+  [`ftplugin/`](ftplugin/jac.lua)); register the parser with `nvim-treesitter`
+  (be sure to list **both** `src/parser.c` and `src/scanner.c`).
+- **Helix / Zed** — [`docs/editors.md`](docs/editors.md).
+- **Registries** (nvim-treesitter, nvim-lspconfig, Helix/Zed, GitHub Linguist)
+  are upstream PRs; the artifacts they need live here. See
+  [`docs/editors.md`](docs/editors.md#registries-upstream-prs--maintainer-action).
 
 ## License
 

@@ -1,31 +1,36 @@
 # Neovim setup
 
 `tree-sitter-jac` works with Neovim's tree-sitter integration
-(`nvim-treesitter`). Until the parser is published to the nvim-treesitter
-registry, register it manually.
+(`nvim-treesitter`). Until the parser lands in the nvim-treesitter community
+registry, register it manually as shown below.
 
-## 1. Filetype detection
-
-Teach Neovim that `*.jac` (and the `*.impl.jac` / `*.test.jac` / `*.cl.jac` /
-`*.sv.jac` / `*.na.jac` variants) are filetype `jac`:
+This repo doubles as a Neovim plugin: it ships `ftdetect/jac.lua` (filetype
+detection for `*.jac` and the `*.impl.jac` / `*.cl.jac` / `*.sv.jac` /
+`*.na.jac` / `*.test.jac` variants) and `ftplugin/jac.lua` (commentstring,
+indent). Install it like any plugin to get those for free, e.g. with lazy.nvim:
 
 ```lua
-vim.filetype.add({
-  extension = { jac = "jac" },
-  pattern = { [".*%.%a+%.jac"] = "jac" }, -- impl.jac, test.jac, cl.jac, ...
-})
+{ "jaseci-labs/tree-sitter-jac" }
 ```
 
-## 2. Register the parser
+If you are *not* installing it as a plugin, add filetype detection yourself:
+
+```lua
+vim.filetype.add({ extension = { jac = "jac" } })
+```
+
+## 1. Register and install the parser
 
 ```lua
 local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
 parser_config.jac = {
   install_info = {
     url = "https://github.com/jaseci-labs/tree-sitter-jac",
-    files = { "src/parser.c" },
+    -- BOTH files are required: the grammar uses an external scanner
+    -- (src/scanner.c) for f-strings, JSX text, and `::py::` blocks.
+    files = { "src/parser.c", "src/scanner.c" },
     branch = "main",
-    -- generate_requires_npm = false, -- parser.c is committed
+    generate_requires_npm = false, -- src/parser.c is committed
   },
   filetype = "jac",
 }
@@ -33,48 +38,57 @@ parser_config.jac = {
 
 Then `:TSInstall jac`.
 
-For local development against a checkout:
+For local development against a checkout, point the url at the path:
 
 ```lua
-parser_config.jac.install_info.url = "/path/to/tree-sitter-jac" -- local path
+parser_config.jac.install_info.url = "/path/to/tree-sitter-jac"
 ```
 
-## 3. Install queries
+## 2. Install the queries
 
-Copy this repo's `queries/*.scm` to where nvim-treesitter looks for them, e.g.
-`~/.config/nvim/queries/jac/`, or rely on the runtime path if installed as a
-plugin. Provided queries:
+`:TSInstall` compiles the parser but does not copy queries. Put this repo's
+`queries/*.scm` where nvim-treesitter looks for them — `queries/jac/` on your
+`runtimepath` (e.g. `~/.config/nvim/queries/jac/`), or get them automatically
+by installing this repo as a plugin (above). Provided queries:
 
-- `highlights.scm` — syntax highlighting
-- `locals.scm` — scopes & definitions (for variable highlighting)
+- `highlights.scm` — syntax highlighting (incl. f-string interpolations & JSX)
+- `locals.scm` — scopes & definitions
 - `folds.scm` — `foldmethod=expr` folding
-- `injections.scm` — embedded language regions (e.g. inline Python)
+- `injections.scm` — embedded languages (inline Python, comments)
+- `indents.scm` — indentation
+- `textobjects.scm` — `nvim-treesitter-textobjects` (functions, classes, …)
 
-## 4. Editor niceties (ftplugin)
-
-Tree-sitter handles highlighting/folding, but comments and indent are still
-worth setting. In `~/.config/nvim/after/ftplugin/jac.lua`:
+## 3. Folding & indentation
 
 ```lua
-vim.bo.commentstring = "# %s"
-vim.bo.comments = ":#"
+-- folding
 vim.opt_local.foldmethod = "expr"
 vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+-- indentation: enable in your nvim-treesitter setup
+require("nvim-treesitter.configs").setup({ indent = { enable = true } })
 ```
 
-## LSP (separate from this grammar)
+## 4. LSP (separate from this grammar)
 
-Syntax highlighting (this grammar) and semantic features (completion, hover,
+Highlighting (this grammar) and semantic features (completion, hover,
 diagnostics, go-to-definition) are independent. For the latter, point Neovim's
-built-in LSP at the Jac language server:
+built-in LSP at the Jac language server, which ships with jaclang:
 
 ```lua
-vim.lsp.start({
-  name = "jac",
-  cmd = { "jac", "lsp" },
-  root_dir = vim.fs.dirname(vim.fs.find({ "jac.toml", ".git" }, { upward = true })[1]),
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "jac",
+  callback = function(args)
+    vim.lsp.start({
+      name = "jac",
+      cmd = { "jac", "lsp" },
+      root_dir = vim.fs.root(args.buf, { "jac.toml", ".git" }),
+    })
+  end,
 })
 ```
 
-Run this from the `jac` ftplugin or a `FileType jac` autocommand so it attaches
-to `.jac` buffers.
+Once `jac` is added to [nvim-lspconfig], this becomes
+`require("lspconfig").jac.setup({})`. The upstream tracking issue is
+jaseci-labs/jaseci#6784.
+
+[nvim-lspconfig]: https://github.com/neovim/nvim-lspconfig
