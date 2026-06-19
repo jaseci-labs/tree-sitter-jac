@@ -58,6 +58,11 @@ by installing this repo as a plugin (above). Provided queries:
 - `indents.scm` — indentation
 - `textobjects.scm` — `nvim-treesitter-textobjects` (functions, classes, …)
 
+> `::py:: … ::py::` blocks (and code-in-comments) are highlighted by injecting
+> another language, so install that parser for it to render — e.g.
+> `:TSInstall python`. The `textobjects.scm` motions additionally require the
+> `nvim-treesitter-textobjects` plugin.
+
 ## 3. Folding & indentation
 
 ```lua
