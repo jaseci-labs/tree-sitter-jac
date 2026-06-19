@@ -387,3 +387,46 @@ with entry {
                   (unary_expression
                     (expression
                       (identifier))))))))))))
+
+==================
+concurrent flow / wait expressions
+==================
+
+with entry {
+    self.fut = flow self.dispatcher();
+    result = wait fetch(url);
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (attribute_expression
+                (special_ref)
+                (identifier)))
+            (expression
+              (concurrent_expression
+                (expression
+                  (call_expression
+                    (attribute_expression
+                      (special_ref)
+                      (identifier))
+                    (argument_list)))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (concurrent_expression
+                (expression
+                  (call_expression
+                    (identifier)
+                    (argument_list
+                      (argument
+                        (expression
+                          (identifier))))))))))))))

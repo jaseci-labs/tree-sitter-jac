@@ -336,6 +336,7 @@ def build_expr(g: Grammar) -> None {
         sym("ternary_expression"),
         sym("lambda_expression"),
         sym("connect_expression"),
+        sym("concurrent_expression"),
         sym("_primary_expression")
     ));
 
