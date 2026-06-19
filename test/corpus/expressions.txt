@@ -330,3 +330,60 @@ with entry {
                 (report_statement
                   (expression
                     (identifier)))))))))))
+
+==================
+dict spread and set unpack
+==================
+
+with entry {
+    merged = {**base, "y": 20,};
+    both = {**a, **b};
+    s = {*xs, *ys};
+}
+
+---
+
+(source_file
+  (element
+    (module_code
+      (block_body
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (dict
+                (dict_entry
+                  (expression
+                    (identifier)))
+                (dict_entry
+                  (expression
+                    (string))
+                  (expression
+                    (integer)))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (dict
+                (dict_entry
+                  (expression
+                    (identifier)))
+                (dict_entry
+                  (expression
+                    (identifier)))))))
+        (statement
+          (expression_statement
+            (expression
+              (identifier))
+            (expression
+              (set
+                (expression
+                  (unary_expression
+                    (expression
+                      (identifier))))
+                (expression
+                  (unary_expression
+                    (expression
+                      (identifier))))))))))))

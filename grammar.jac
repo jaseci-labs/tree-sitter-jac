@@ -388,8 +388,12 @@ def build_expr(g: Grammar) -> None {
     # Prefix operators. `|>` / `:>` are the prefix pipe-call forms
     # (jac.spec `pipe_call`), e.g. `x = :> uuid4()` -- distinct from their
     # binary (atomic-)pipe roles, disambiguated by the absence of a left operand.
+    # NOTE: `**` is intentionally NOT a general prefix operator -- it only ever
+    # appears as dict-spread (`{**x}`), call kwargs (`f(**x)`), or a `**param`,
+    # each handled by its own rule. Treating it as a unary made `{**x}` match a
+    # set element, so `{**base, "k": v}` mis-parsed as a set and broke at `:`.
     uops = [];
-    for u in ["not", "~", "-", "+", "*", "**", "&", "|>", ":>"] { uops.append(lit(u)); }
+    for u in ["not", "~", "-", "+", "*", "&", "|>", ":>"] { uops.append(lit(u)); }
     rule(g, "unary_expression", precr(19, seq(
         field("operator", choice(*uops)),
         field("operand", sym("expression"))
@@ -969,7 +973,11 @@ def build_decls(g: Grammar) -> None {
 
     rule(g, "enum", seq(
         decorators(), lit("enum"), access_tag(), field("name", name_ref()),
-        opt(seq(lit(":"), sym("expression"))),
+        # base class: either `: Base` or `(Base, ...)` (jac.spec).
+        opt(choice(
+            seq(lit(":"), sym("expression")),
+            seq(lit("("), opt(comma_sep1(sym("expression"))), lit(")"))
+        )),
         choice(
             seq(lit("{"), comma_sep(sym("enum_member")), opt(lit(",")), lit("}")),
             lit(";")

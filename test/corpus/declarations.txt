@@ -356,3 +356,42 @@ with entry {
                         (argument
                           (expression
                             (identifier)))))))))))))))
+
+==================
+enum with base class
+==================
+
+enum MessageType(IntEnum) {
+    Error = 1,
+    Warning = 2
+}
+
+enum Color: int {
+    RED = 1
+}
+
+---
+
+(source_file
+  (element
+    (enum
+      (identifier)
+      (expression
+        (identifier))
+      (enum_member
+        (identifier)
+        (expression
+          (integer)))
+      (enum_member
+        (identifier)
+        (expression
+          (integer)))))
+  (element
+    (enum
+      (identifier)
+      (expression
+        (builtin_type))
+      (enum_member
+        (identifier)
+        (expression
+          (integer))))))
