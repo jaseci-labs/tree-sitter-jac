@@ -10,13 +10,13 @@
         "jac"
       ],
       "highlights": [
-        "queries/highlights.scm"
+        "queries/jac/highlights.scm"
       ],
       "injections": [
-        "queries/injections.scm"
+        "queries/jac/injections.scm"
       ],
       "locals": [
-        "queries/locals.scm"
+        "queries/jac/locals.scm"
       ],
       "injection-regex": "^jac$",
       "first-line-regex": "^#!.*\\bjac\\b"

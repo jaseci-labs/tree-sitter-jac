@@ -21,6 +21,12 @@ vim.filetype.add({ extension = { jac = "jac" } })
 
 ## 1. Register and install the parser
 
+The snippet below targets nvim-treesitter's `master` branch. On the rewritten
+`main` branch the registration API differs; follow its
+["add a parser"](https://github.com/nvim-treesitter/nvim-treesitter/blob/main/README.md)
+docs, keeping the same `url` and **both** `files` (`src/parser.c`,
+`src/scanner.c`).
+
 ```lua
 local parser_config = require("nvim-treesitter.parsers").get_parser_configs()
 parser_config.jac = {
@@ -46,10 +52,11 @@ parser_config.jac.install_info.url = "/path/to/tree-sitter-jac"
 
 ## 2. Install the queries
 
-`:TSInstall` compiles the parser but does not copy queries. Put this repo's
-`queries/*.scm` where nvim-treesitter looks for them — `queries/jac/` on your
-`runtimepath` (e.g. `~/.config/nvim/queries/jac/`), or get them automatically
-by installing this repo as a plugin (above). Provided queries:
+`:TSInstall` compiles the parser but does not ship queries. They live at
+`queries/jac/` here, which is exactly where Neovim looks on the `runtimepath` —
+so **installing this repo as a plugin (above) provides them automatically**. If
+you are not using it as a plugin, copy `queries/jac/*.scm` to
+`~/.config/nvim/queries/jac/`. Provided queries:
 
 - `highlights.scm` — syntax highlighting (incl. f-string interpolations & JSX)
 - `locals.scm` — scopes & definitions

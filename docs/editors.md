@@ -2,7 +2,7 @@
 
 The grammar manifest lives in [`tree-sitter.json`](../tree-sitter.json) (scope
 `source.jac`, file type `jac`) and the highlight/locals/injections/folds/
-indents/textobjects queries live in [`queries/`](../queries). Neovim has its own
+indents/textobjects queries live in [`queries/jac/`](../queries/jac). Neovim has its own
 guide in [nvim.md](./nvim.md); this covers the rest.
 
 ## Helix
@@ -32,7 +32,7 @@ Then build the grammar and install the queries:
 ```sh
 hx --grammar fetch && hx --grammar build
 # copy this repo's queries to Helix's runtime:
-cp queries/*.scm ~/.config/helix/runtime/queries/jac/
+cp queries/jac/*.scm ~/.config/helix/runtime/queries/jac/
 ```
 
 ## Zed
@@ -83,4 +83,4 @@ request to a *third-party* repository:
   helix-editor/helix and the Zed extensions registry.
 
 The in-repo artifacts those PRs reference — `src/parser.c` + `src/scanner.c`,
-`queries/*.scm`, and `tree-sitter.json` — are all present and CI-verified here.
+`queries/jac/*.scm`, and `tree-sitter.json` — are all present and CI-verified here.
