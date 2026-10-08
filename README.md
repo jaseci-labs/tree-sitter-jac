@@ -60,35 +60,38 @@ recipes; every artifact they reference already lives here.
 
 ## Status
 
-**Parses real-world Jac.** Across the full jaclang corpus (~3,100 `.jac` files)
-**~91% parse with zero error nodes** — and since a large share of the remainder
-are jaclang's own negative-test fixtures (files written to *fail* compilation),
-the pass rate on valid Jac is **~97%**. Track it with
-`jac run scripts/error-density.jac <corpus-dir> [--sample N] [--triage]`.
+**Parses current Jac.** Across the jaseci repository on the jac 0.37.25 grammar
+(5,404 `.jac` files), **99.7% parse with zero error nodes**. The remaining files
+are jaclang's own negative-test fixtures, written to *fail* compilation. Track
+it with `jac run scripts/error-density.jac <corpus-dir> [--sample N] [--triage]`.
 
-Covered: declarations (obj/node/edge/walker/class with access tags & bases,
-abilities with event clauses, has + property accessors, enum + bases, impl,
-glob, test, type, sem), statements (if/elif/else, while, for-in / for-to-by,
-try/except/finally, with, match, switch, return/yield/raise/assert/del/visit/
-report/disengage/global/nonlocal), the full expression precedence ladder
-including atomic & concurrent (`flow`/`wait`) expressions, collections &
-comprehensions (incl. generators), imports (dotted, relative, string-path/JS),
-graph/edge & disconnect operators, and object-spatial filter comprehensions.
+Covered: declarations (obj/node/edge/walker/class with access tags, bases and
+edge endpoints; abilities with modifiers, event clauses and `abst`; has with
+`postinit` and getter/setter/deleter accessors; enum, impl including enum member
+bodies, glob and `comptime` globals, test, type, sem), statements (if/elif/else,
+while, for-in and `for ... while ... with`, `flow for`, `forever`, `in` region
+blocks, try/except/finally, with, match, switch, return/yield/raise/assert/del/
+visit/report/disengage, `comptime` if/for/assert, typed context blocks), the
+full expression precedence ladder including casts, ownership prefixes
+(`own`/`imm`/`lin`/`&mut`), atomic and concurrent (`flow`/`wait`) expressions,
+`graph { }` blocks and assign comprehensions, collections and comprehensions,
+imports (dotted, relative, string-path/JS, extern declaration blocks,
+`impl import` wiring), graph/edge and disconnect operators, object-spatial
+filter comprehensions, and `#* ... *#` block comments.
 
 An **external scanner** ([`src/scanner.c`](src/scanner.c)) supplies the
 context-sensitive tokens the grammar can't express:
 
 - **f-strings** — `f"...{expr}..."` is split into text + parsed interpolations
   (with format specs, conversions, escapes, triple/raw quotes, and nesting).
-- **JSX / view bodies** (`.cl.jac`) — elements, attributes/spread, fragments,
-  `{expr}` children, and `{ if/for { <jsx> } }` view-body control flow.
+- **JSX / view bodies** (`.cl.jac`): elements, attributes/spread, fragments,
+  `{expr}` children, and `{ ... }` statement slots such as `{if c { <a/> }}`.
 - **`::py::`** inline-Python blocks.
 
-**Known gaps (small, tracked follow-ups):**
-- **Cast `x as T`** — `as` is reserved for except/with/import bindings to avoid
-  pervasive grammar conflicts; bare casts are deferred.
-- A few reserved words used as identifiers (e.g. `override = ...`) and some
-  `.na` native-only constructs.
+**Known limitations:** two spec forms that no current Jac code uses are
+resolved by preference. `async class` reads as an archetype rather than an
+`async class def` ability, and `comptime async` reads as ability modifiers rather
+than a `comptime async for` loop.
 
 ## Building from source (contributors)
 
@@ -96,8 +99,9 @@ Only contributors regenerating the grammar need to build; *consumers* compile
 the committed `src/parser.c` + `src/scanner.c` via their editor (see
 [Installation](#installation)).
 
-Prerequisites: [jaclang](https://www.jac-lang.org) (`pip install jaclang`) and
-the tree-sitter CLI (`npm i -g tree-sitter-cli` or `cargo install tree-sitter-cli`).
+Prerequisites: the `jac` release pinned in `.jaclang-version`, installed with
+`curl -fsSL https://raw.githubusercontent.com/jaseci-labs/jaseci/main/scripts/install.sh | bash -s -- --version "$(cat .jaclang-version)"`,
+and tree-sitter CLI 0.22.6 (`npm i -g tree-sitter-cli@0.22.6`).
 
 ```sh
 jac run grammar.jac                        # OSP grammar graph -> src/grammar.json
@@ -134,10 +138,10 @@ computation travels to the data graph. See [`grammar.jac`](grammar.jac).
 
 The Jac grammar's authoritative EBNF is auto-extracted from the jaclang parser
 by `grammar_extract_pass` and published as `jaclang/jac.spec`. This tree-sitter
-grammar is a hand-tuned translation of that spec. CI fetches `jac.spec` from the
-pinned jaclang release tag (`.jaclang-version`) and diffs it against the
-committed `jac.spec.snapshot`, so any drift in the upstream language grammar
-surfaces as a failing check.
+grammar is a hand-tuned translation of that spec. CI installs the `jac` release
+pinned in `.jaclang-version`, regenerates the spec with `jac tool grammar`, and
+diffs it against the committed `jac.spec.snapshot`. Bumping the pin therefore
+fails CI until the snapshot (and the grammar) are updated to match.
 
 ### Engineering note (parse-table size)
 
@@ -146,9 +150,12 @@ inlining a helper (e.g. a name/decorator/code-block fragment) at many call
 sites duplicates its states and can blow up table construction. Helpers that
 appear in many places — `_name_ref`, `decorator_list`, `block_body` — are
 therefore emitted as **shared rules** (hidden where they shouldn't appear in the
-tree), not inlined. Regenerate with a memory cap during development
-(`ulimit -v` + `timeout`) so a structural mistake fails fast instead of
-exhausting host memory.
+tree), not inlined. Every optional part of a sequence also doubles that rule's
+productions, so runs of optional keywords (ability and `for` modifiers) are a
+single visible repeat rule; the same repeat as a hidden rule exhausts memory.
+Regenerate with a memory cap during development (for example
+`systemd-run --user --scope -p MemoryMax=3G` + `timeout`) so a structural
+mistake fails fast instead of exhausting host memory.
 
 ## License
 
